@@ -20,7 +20,7 @@ $(RESULT): debug-code top
 clean:: nobackup
 
 # ↓もし実装を改造したら、それに合わせて変える
-SOURCES = type.ml id.ml m.ml s.ml \
+SOURCES = type.ml id.ml m.ml \
 syntax.ml parser.mly lexer.mll typing.mli typing.ml emit.ml \
 main.mli main.ml
 
