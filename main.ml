@@ -1,11 +1,6 @@
-let limit = ref 1000
-
 let lexbuf outchan l = (* バッファをコンパイルしてチャンネルへ出力する (caml2html: main_lexbuf) *)
   Id.counter := 0;
-  Typing.extenv := M.empty;
-  Emit.f outchan
-			 (Typing.f
-			    (Parser.exp Lexer.token l))
+  Emit.f outchan (Parser.exp Lexer.token l)
 
 let string s = lexbuf stdout (Lexing.from_string s) (* 文字列をコンパイルして標準出力に表示する (caml2html: main_string) *)
 
