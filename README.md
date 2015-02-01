@@ -22,15 +22,15 @@ $ make do_test
 
 ## ソースファイル
 
-- [type.ml](type.ml) 型定義
-- [[id.ml]] id定義
-- [syntax.ml](syntax.ml) 構文木定義
-- parser.mly パーサ
-- lexer.mll レキサー
-- emit.ml JavaScript出力
-- main.ml メイン
+1. [type.ml](type.ml) 型定義
+2. [id.ml](id.ml) id定義
+3. [syntax.ml](syntax.ml) 構文木定義
+4. [parser.mly](parser.mly) パーサ
+5. [lexer.mll](lexer.mll) レキサー
+6. [emit.ml](emit.ml) JavaScript出力
+7. [main.ml](main.ml) メイン
 
-TODO
+## TODO
 
 - ドキュメント
     - 簡単な変換
