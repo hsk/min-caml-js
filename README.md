@@ -1,6 +1,7 @@
 # mincaml-js
 
 mincaml-jsはocamlのサブセットである、mincamlからJavaScriptへのトランスレータです。
+トランスレータにのみ特化することで、シンプルさを維持しています。
 
 ```
 $ make
@@ -19,6 +20,15 @@ $ node test/fib.js
 $ make do_test
 ```
 
+## ソースファイル
+
+- [type.ml](type.ml) 型定義
+- [[id.ml]] id定義
+- [syntax.ml](syntax.ml) 構文木定義
+- parser.mly パーサ
+- lexer.mll レキサー
+- emit.ml JavaScript出力
+- main.ml メイン
 
 TODO
 
