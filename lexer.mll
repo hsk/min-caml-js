@@ -24,6 +24,16 @@ rule token = parse
     { BEGIN }
 | "end"
     { END }
+| "match"
+    { MATCH }
+| "with"
+    { WITH }
+| "when"
+    { WHEN }
+| "->"
+    { ARROW }
+| "|"
+    { BAR }
 | "true"
     { BOOL(true) }
 | "false"

@@ -27,6 +27,7 @@ TODO
     - より高度な変換
 
 - 仕様追加
+	- [x] begin end
     - パターンマッチング構文
         - match e with | p1 -> e1 | ... | pn -> en
         - _

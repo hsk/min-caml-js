@@ -36,6 +36,7 @@ let addtyp x = (x, Type.gentyp ())
 %token LPAREN
 %token RPAREN
 %token BEGIN END
+%token MATCH WITH WHEN ARROW BAR
 %token EOF
 
 /* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) */
@@ -105,6 +106,12 @@ exp: /* 一般の式 (caml2html: parser_exp) */
 | IF exp THEN exp ELSE exp
     %prec prec_if
     { If($2, $4, $6) }
+| MATCH exp WITH BAR cases
+    %prec prec_if
+    { Match($2, $5) }
+| MATCH exp WITH cases
+    %prec prec_if
+    { Match($2, $4) }
 | MINUS_DOT exp
     %prec prec_unary_minus
     { FNeg($2) }
@@ -171,3 +178,8 @@ pat:
     { $1 @ [addtyp $3] }
 | IDENT COMMA IDENT
     { [addtyp $1; addtyp $3] }
+
+cases:
+| exp ARROW exp
+    { [($1, $3)] }
+| exp ARROW exp BAR cases { ($1,$3)::$5 }
