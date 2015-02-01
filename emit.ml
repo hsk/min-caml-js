@@ -23,11 +23,6 @@ let rec h oc t =
     end 0 ts in
     ()
   in
-  let rec cases oc = function
-    | [] -> ()
-    | (Syntax.Var(v),t) :: ts -> Printf.fprintf oc "return (function(%s){ return %a; }(__mincaml__tmp__)); %a" v h t cases ts
-    | (t1,t2) :: ts -> Printf.fprintf oc "if(__mincaml__tmp__==%a) { return %a; } %a" h t1 h t2 cases ts
-  in
   match t with
   | Syntax.Unit -> Printf.fprintf oc "undefined"
   | Syntax.Bool(b) -> Printf.fprintf oc "%b" b
@@ -48,16 +43,47 @@ let rec h oc t =
   | Syntax.Let((id, Type.Unit), t, t2) -> Printf.fprintf oc "(%a,%a)" h t h t2
   | Syntax.Let((id, ty), t, t2) -> Printf.fprintf oc "(function(){\nvar %s = %a;\n return %a;\n}()\n)" id h t h t2
   | Syntax.Var(id) -> Printf.fprintf oc "%s" id
-  | Syntax.LetRec({Syntax.name=(id,ty);Syntax.args=args; Syntax.body = t }, t2) ->
+  | Syntax.LetRec(((id,ty),args, t), t2) ->
       Printf.fprintf oc "(function(){function %s (%a) { return %a; }\nreturn %a;}())\n" id idtys args h t h t2
   | Syntax.App(t, ts) -> Printf.fprintf oc "%a(%a)" h t hs ts
+  | Syntax.CApp(i, Syntax.Unit) -> Printf.fprintf oc "%s" i
+  | Syntax.CApp(i, t) -> Printf.fprintf oc "new %s(%a)" i h t
   | Syntax.Tuple(ts) -> Printf.fprintf oc "[%a]" hs ts
   | Syntax.LetTuple(its, t, t2) -> Printf.fprintf oc "(function(){%a\nreturn %a;}())" idtyts (its,t) h t2
   | Syntax.Array(t, t2) -> Printf.fprintf oc "makeArray(%a,%a)" h t h t2
   | Syntax.Get(t, t2) -> Printf.fprintf oc "%a[%a]" h t h t2
   | Syntax.Put(t, t2, t3) -> Printf.fprintf oc "%a[%a]=%a" h t h t2 h t3
-  | Syntax.Match(t, tts) -> Printf.fprintf oc "(function(__mincaml__tmp__){%a}(%a))" cases tts h t
-
+  | Syntax.Match(t, tts) ->
+    let c oc = function
+      | (Syntax.Var(v),t) ->
+        Printf.fprintf oc "\nreturn (function(%s){ return %a; }(__mincaml__tmp__));" v h t
+      | (Syntax.CApp(v,Syntax.Unit),t) ->
+        Printf.fprintf oc "\nif(__mincaml__tmp__.tag=='%s') { return %a; }" v h t
+      | (Syntax.CApp(v,Syntax.Var(a)),t) ->
+        Printf.fprintf oc
+          "\nif(__mincaml__tmp__.tag=='%s') { return (function(%s){ return %a; }(__mincaml__tmp__.data));}"
+          v a h t
+      | (Syntax.CApp(v,Syntax.Tuple(vs)),t) ->
+        Printf.fprintf oc
+          "\nif(__mincaml__tmp__.tag=='%s') { return (function(%a){ return %a; }.apply(this,__mincaml__tmp__.data));}"
+            v hs vs h t
+      | (t1,t2) ->
+        Printf.fprintf oc "\nif(__mincaml__tmp__==%a) { return %a; }" h t1 h t2
+    in
+    let rec cases oc = function
+      | [] -> ()
+      | t :: ts -> Printf.fprintf oc "%a %a" c t cases ts
+    in
+    Printf.fprintf oc "(function(__mincaml__tmp__){%a}(%a))" cases tts h t
+  | Syntax.Type(id,tys,t) ->
+    let rec ptys oc = function
+    | [] -> ()
+    | (id,[])::xs ->
+      Printf.fprintf oc "var %s = {tag:'%s'};\n%a" id id ptys xs
+    | (id,ts)::xs ->
+      Printf.fprintf oc "function %s(a){this.tag='%s';this.data=a;}\n%a" id id ptys xs
+    in
+    Printf.fprintf oc "%a%a" ptys tys h t
 let f oc ast =
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc "// generating by mincaml2js\n";

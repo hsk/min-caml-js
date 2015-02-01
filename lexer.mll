@@ -34,6 +34,12 @@ rule token = parse
     { ARROW }
 | "|"
     { BAR }
+| "type"
+    { TYPE }
+| "of"
+    { OF }
+| ";;"
+    { SEMISEMI }
 | "true"
     { BOOL(true) }
 | "false"
@@ -48,6 +54,8 @@ rule token = parse
     { MINUS }
 | '+' (* +.より後回しにしなくても良い? 最長一致? *)
     { PLUS }
+| '*'
+    { AST }
 | "-."
     { MINUS_DOT }
 | "+."
@@ -94,6 +102,8 @@ rule token = parse
     { SEMICOLON }
 | eof
     { EOF }
+| upper (digit|lower|upper|'_')* (* 他の「予約語」より後でないといけない *)
+    { CIDENT(Lexing.lexeme lexbuf) }
 | lower (digit|lower|upper|'_')* (* 他の「予約語」より後でないといけない *)
     { IDENT(Lexing.lexeme lexbuf) }
 | _

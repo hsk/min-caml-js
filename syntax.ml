@@ -25,4 +25,6 @@ type t = (* MinCamlの構文を表現するデータ型 (caml2html: syntax_t) *)
   | Get of t * t
   | Put of t * t * t
   | Match of t * (t * t) list
-and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
+  | Type of Id.t * (Id.t * Type.t list) list * t
+  | CApp of Id.t * t
+and fundef = ((Id.t * Type.t) * (Id.t * Type.t) list * t)

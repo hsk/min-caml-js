@@ -25,6 +25,7 @@ let addtyp x = (x, Type.gentyp ())
 %token THEN
 %token ELSE
 %token <Id.t> IDENT
+%token <Id.t> CIDENT
 %token LET
 %token IN
 %token REC
@@ -37,6 +38,7 @@ let addtyp x = (x, Type.gentyp ())
 %token RPAREN
 %token BEGIN END
 %token MATCH WITH WHEN ARROW BAR
+%token TYPE OF SEMISEMI AST
 %token EOF
 
 /* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) */
@@ -49,6 +51,7 @@ let addtyp x = (x, Type.gentyp ())
 %left PLUS MINUS PLUS_DOT MINUS_DOT
 %left AST_DOT SLASH_DOT
 %right prec_unary_minus
+%left prec_capp
 %left prec_app
 %left DOT
 
@@ -112,6 +115,12 @@ exp: /* 一般の式 (caml2html: parser_exp) */
 | MATCH exp WITH cases
     %prec prec_if
     { Match($2, $4) }
+| TYPE IDENT EQUAL BAR consts SEMISEMI exp
+    %prec prec_if
+    { Type($2, $5, $7) }
+| TYPE IDENT EQUAL consts SEMISEMI exp
+    %prec prec_if
+    { Type($2, $4, $6) }
 | MINUS_DOT exp
     %prec prec_unary_minus
     { FNeg($2) }
@@ -129,6 +138,13 @@ exp: /* 一般の式 (caml2html: parser_exp) */
 | LET REC fundef IN exp
     %prec prec_let
     { LetRec($3, $5) }
+
+| CIDENT
+    %prec prec_capp
+    { CApp($1, Unit) }
+| CIDENT exp
+    %prec prec_capp
+    { CApp($1, $2) }
 | exp actual_args
     %prec prec_app
     { App($1, $2) }
@@ -151,7 +167,7 @@ exp: /* 一般の式 (caml2html: parser_exp) */
 
 fundef:
 | IDENT formal_args EQUAL exp
-    { { name = addtyp $1; args = $2; body = $4 } }
+    { (addtyp $1, $2, $4) }
 
 formal_args:
 | IDENT formal_args
@@ -173,6 +189,14 @@ elems:
 | exp COMMA exp
     { [$1; $3] }
 
+celem:
+| { [] }
+| exp { [$1] }
+
+celems:
+| exp { [$1] }
+| exp COMMA celems { $1::$3 }
+
 pat:
 | pat COMMA IDENT
     { $1 @ [addtyp $3] }
@@ -183,3 +207,18 @@ cases:
 | exp ARROW exp
     { [($1, $3)] }
 | exp ARROW exp BAR cases { ($1,$3)::$5 }
+
+type1:
+| IDENT { Type.Id($1) }
+
+types:
+| type1 { [$1] }
+| type1 AST types { $1::$3 }
+
+const:
+| CIDENT OF types { ($1,$3) }
+| CIDENT { ($1,[]) }
+
+consts:
+| const { [$1] }
+| const BAR consts { $1::$3 }
