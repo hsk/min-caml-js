@@ -25,8 +25,8 @@ let rec h oc t =
   in
   let rec cases oc = function
     | [] -> ()
-    | (Syntax.Var(v),t) :: ts -> Printf.fprintf oc "return (function(%s){ return %a; }(e)); %a" v h t cases ts
-    | (t1,t2) :: ts -> Printf.fprintf oc "if(e==%a) { return %a; } %a" h t1 h t2 cases ts
+    | (Syntax.Var(v),t) :: ts -> Printf.fprintf oc "return (function(%s){ return %a; }(__mincaml__tmp__)); %a" v h t cases ts
+    | (t1,t2) :: ts -> Printf.fprintf oc "if(__mincaml__tmp__==%a) { return %a; } %a" h t1 h t2 cases ts
   in
   match t with
   | Syntax.Unit -> Printf.fprintf oc "undefined"
@@ -56,7 +56,7 @@ let rec h oc t =
   | Syntax.Array(t, t2) -> Printf.fprintf oc "makeArray(%a,%a)" h t h t2
   | Syntax.Get(t, t2) -> Printf.fprintf oc "%a[%a]" h t h t2
   | Syntax.Put(t, t2, t3) -> Printf.fprintf oc "%a[%a]=%a" h t h t2 h t3
-  | Syntax.Match(t, tts) -> Printf.fprintf oc "(function(e){%a}(%a))" cases tts h t
+  | Syntax.Match(t, tts) -> Printf.fprintf oc "(function(__mincaml__tmp__){%a}(%a))" cases tts h t
 
 let f oc ast =
   Format.eprintf "generating assembly...@.";
