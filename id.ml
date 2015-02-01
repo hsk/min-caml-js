@@ -1,5 +1,5 @@
-type t = string (* 変数の名前 (caml2html: id_t) *)
-type l = L of string (* トップレベル関数やグローバル配列のラベル (caml2html: id_l) *)
+type t = string
+type l = L of string
 
 
 
