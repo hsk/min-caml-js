@@ -20,6 +20,10 @@ rule token = parse
     { LPAREN }
 | ')'
     { RPAREN }
+| "begin"
+    { BEGIN }
+| "end"
+    { END }
 | "true"
     { BOOL(true) }
 | "false"

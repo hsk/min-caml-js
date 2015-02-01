@@ -35,6 +35,7 @@ let addtyp x = (x, Type.gentyp ())
 %token SEMICOLON
 %token LPAREN
 %token RPAREN
+%token BEGIN END
 %token EOF
 
 /* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) */
@@ -58,6 +59,8 @@ let addtyp x = (x, Type.gentyp ())
 
 simple_exp: /* 括弧をつけなくても関数の引数になれる式 (caml2html: parser_simple) */
 | LPAREN exp RPAREN
+    { $2 }
+| BEGIN exp END
     { $2 }
 | LPAREN RPAREN
     { Unit }
