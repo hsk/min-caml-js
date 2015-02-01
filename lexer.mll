@@ -1,10 +1,8 @@
 {
-(* lexerが利用する変数、関数、型などの定義 *)
 open Parser
 open Type
 }
 
-(* 正規表現の略記 *)
 let space = [' ' '\t' '\n' '\r']
 let digit = ['0'-'9']
 let lower = ['a'-'z']
@@ -14,7 +12,7 @@ rule token = parse
 | space+
     { token lexbuf }
 | "(*"
-    { comment lexbuf; (* ネストしたコメントのためのトリック *)
+    { comment lexbuf;
       token lexbuf }
 | '('
     { LPAREN }
@@ -46,13 +44,13 @@ rule token = parse
     { BOOL(false) }
 | "not"
     { NOT }
-| digit+ (* 整数を字句解析するルール (caml2html: lexer_int) *)
+| digit+
     { INT(int_of_string (Lexing.lexeme lexbuf)) }
 | digit+ ('.' digit*)? (['e' 'E'] ['+' '-']? digit+)?
     { FLOAT(float_of_string (Lexing.lexeme lexbuf)) }
-| '-' (* -.より後回しにしなくても良い? 最長一致? *)
+| '-'
     { MINUS }
-| '+' (* +.より後回しにしなくても良い? 最長一致? *)
+| '+'
     { PLUS }
 | '*'
     { AST }
@@ -102,9 +100,9 @@ rule token = parse
     { SEMICOLON }
 | eof
     { EOF }
-| upper (digit|lower|upper|'_')* (* 他の「予約語」より後でないといけない *)
+| upper (digit|lower|upper|'_')*
     { CIDENT(Lexing.lexeme lexbuf) }
-| lower (digit|lower|upper|'_')* (* 他の「予約語」より後でないといけない *)
+| lower (digit|lower|upper|'_')*
     { IDENT(Lexing.lexeme lexbuf) }
 | _
     { failwith
