@@ -17,7 +17,7 @@ TESTS = match begin print sum-tail gcd sum fib ack even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
-inprod inprod-rec inprod-loop matmul matmul-flat variant
+inprod inprod-rec inprod-loop matmul matmul-flat variant when
 
 do_test: $(TESTS:%=test/%.cmp)
 

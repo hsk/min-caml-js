@@ -24,6 +24,6 @@ type t =
   | Array of t * t
   | Get of t * t
   | Put of t * t * t
-  | Match of t * (t * t) list
+  | Match of t * (t * t option * t) list
   | Type of Id.t * (Id.t * Type.t list) list * t
   | CApp of Id.t * t

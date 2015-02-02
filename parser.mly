@@ -199,10 +199,13 @@ pat:
 | IDENT COMMA IDENT
     { [addtyp $1; addtyp $3] }
 
+when1:
+| { None }
+| WHEN exp { Some $2 }
 cases:
-| exp ARROW exp
-    { [($1, $3)] }
-| exp ARROW exp BAR cases { ($1,$3)::$5 }
+| exp when1 ARROW exp
+    { [($1, $2, $4)] }
+| exp when1 ARROW exp BAR cases { ($1, $2, $4)::$6 }
 
 type1:
 | IDENT { Type.Id($1) }

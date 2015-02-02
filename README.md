@@ -1,7 +1,8 @@
 # mincaml-js
 
 mincaml-jsはocamlのサブセットである、mincamlからJavaScriptへのトランスレータです。
-トランスレータにのみ特化することで、シンプルさを維持しています。
+トランスレータにのみ特化することで、シンプルさを維持します。
+mincaml-jsはmincamlにいくつかの機能が追加されています。
 
 ```
 $ make
@@ -44,7 +45,7 @@ $ make do_test
         - [x] 値バインディング
         - [ ] ネストした値バインディング
         - [ ] ネストした値の比較
-        - [ ] whenによるガード
+        - [x] whenによるガード
         - [ ] @での値バインディング
     - [ ] リスト
     	- [ ] [e1;...;en]でのリストの構築
@@ -60,4 +61,3 @@ $ make do_test
         - [x] タプル type i = Add of i * i | Int of i
         - [ ] リストの使用 type i = I of int list 
     - [ ]文字列
-        - [ ]
