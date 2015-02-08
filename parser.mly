@@ -81,6 +81,7 @@ exp:
     | e -> Pre("-", e)
 }
 | exp CONS exp { CApp("Cons", Tuple[$1; $3]) }
+| exp AT exp { App(Var "concat", [$1; $3]) }
 | exp PLUS exp { Bin($1, "+", $3) }
 | exp MINUS exp { Bin($1, "-", $3) }
 | exp EQUAL exp { Bin($1, "==", $3) }
