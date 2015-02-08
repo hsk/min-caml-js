@@ -36,7 +36,6 @@ let rec show_e = function
   | Tuple(es) -> assert false
   | Array(e1, e2) -> Printf.sprintf "makeArray(%s,%s)" (show_e e1) (show_e e2)
   | CApp(i, t) -> assert false
-  | Type(id,tys,t) -> (show_e t)
 
 let rec to_if e = match e with
   | Unit -> e
@@ -60,7 +59,6 @@ let rec to_if e = match e with
   | Get(e1,e2) -> Get(to_if e1, to_if e2) 
   | Put(e1,e2,e3) -> Put(to_if e1, to_if e2, to_if e3) 
   | CApp(e1,e2) -> Rec([("tag", Str e1); ("data",to_if e2)] )
-  | Type(id,tys,t) -> Type(id,tys,to_if t)
 
 and cmatch e1 ss =
 

@@ -19,5 +19,4 @@ type e =
   | Get of e * e
   | Put of e * e * e
   | Array of e * e
-  | Type of Id.t * (Id.t * Type.t list) list * e
   | CApp of Id.t * e

@@ -85,8 +85,8 @@ exp:
 | IF exp THEN exp ELSE exp %prec prec_if { If($2, $4, $6) }
 | MATCH exp WITH BAR cases %prec prec_if { Match($2, $5) }
 | MATCH exp WITH cases %prec prec_if { Match($2, $4) }
-| TYPE IDENT EQUAL BAR consts SEMISEMI exp %prec prec_if { Type($2, $5, $7) }
-| TYPE IDENT EQUAL consts SEMISEMI exp %prec prec_if { Type($2, $4, $6) }
+| TYPE IDENT EQUAL BAR consts SEMISEMI exp %prec prec_if { $7 }
+| TYPE IDENT EQUAL consts SEMISEMI exp %prec prec_if { $6 }
 
 | MINUS_DOT exp %prec prec_unary_minus { Pre("-", $2) }
 | exp PLUS_DOT exp { Bin($1, "+", $3) }
@@ -110,7 +110,7 @@ exp:
 | elems { Tuple($1) }
 | LET LPAREN exp RPAREN EQUAL exp IN exp { Match($6, [$3, None, $8]) }
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp { Put($1, $4, $7) }
-| exp SEMICOLON exp { Let(Id.gentmp Type.Unit, $1, $3) }
+| exp SEMICOLON exp { Let(Id.gentmp (), $1, $3) }
 | ARRAY_CREATE simple_exp simple_exp %prec prec_app { Array($2, $3) }
 | error
     { failwith
@@ -151,7 +151,7 @@ cases:
 | exp when1 ARROW exp BAR cases { ($1, $2, $4)::$6 }
 
 type1:
-| IDENT { Type.Id($1) }
+| IDENT { $1 }
 
 types:
 | type1 { [$1] }

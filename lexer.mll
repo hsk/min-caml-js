@@ -1,6 +1,5 @@
 {
 open Parser
-open Type
 }
 
 let space = [' ' '\t' '\n' '\r']
@@ -89,7 +88,7 @@ rule token = parse
 | ','
     { COMMA }
 | '_'
-    { IDENT(Id.gentmp Type.Unit) }
+    { IDENT(Id.gentmp ()) }
 | "Array.create" (* [XX] ad hoc *)
     { ARRAY_CREATE }
 | '.'

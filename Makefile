@@ -9,7 +9,7 @@ $(RESULT): debug-code top
 
 clean:: nobackup
 
-SOURCES = type.ml id.ml \
+SOURCES = id.ml \
 syntax.ml parser.mly lexer.mll emit.ml \
 main.ml
 
@@ -21,16 +21,13 @@ inprod inprod-rec inprod-loop matmul matmul-flat variant when
 
 do_test: $(TESTS:%=test/%.cmp)
 
-.PRECIOUS: test/%.s test/% test/%.res test/%.ans test/%.cmp test/%.js
+.PRECIOUS: test/%.res test/%.ans test/%.cmp test/%.js
 TRASH = $(TESTS:%=test/%.s) $(TESTS:%=test/%) $(TESTS:%=test/%.res) $(TESTS:%=test/%.ans) $(TESTS:%=test/%.cmp) $(TESTS:%=test/%.js)
 
 test/%.js: $(RESULT) test/%.ml
 	./$(RESULT) test/$*
-test/%: test/%.js
-	echo "node test/$*.js" > test/$*
-	chmod 777 test/$*
-test/%.res: test/%
-	$< > $@
+test/%.res: test/%.js
+	node $< > $@
 test/%.ans: test/%.ml
 	ocaml $< > $@
 test/%.cmp: test/%.res test/%.ans
