@@ -36,10 +36,11 @@ open Syntax
 %token BEGIN END
 %token MATCH WITH WHEN ARROW BAR
 %token TYPE OF SEMISEMI AST
+%token LBRACK RBRACK CONS AT
 %token EOF
 
 %right prec_let
-%right SEMICOLON
+%right SEMICOLON CONS AT
 %right prec_if
 %right LESS_MINUS
 %left COMMA
@@ -57,6 +58,7 @@ open Syntax
 %%
 
 simple_exp:
+| LBRACK exps RBRACK { $2 }
 | LPAREN exp RPAREN { $2 }
 | BEGIN exp END { $2 }
 | LPAREN RPAREN { Unit }
@@ -66,6 +68,10 @@ simple_exp:
 | IDENT { Var($1) }
 | simple_exp DOT LPAREN exp RPAREN { Get($1, $4) }
 
+exps:
+| { CApp("Nil", Unit) }
+| exp { CApp("Cons", Tuple[$1; CApp("Nil", Unit)]) }
+| exp SEMICOLON exps { CApp("Cons", Tuple[$1; $3]) }
 exp:
 | simple_exp { $1 }
 | NOT exp %prec prec_app { Pre("!", $2) }
@@ -74,6 +80,7 @@ exp:
     | Float(f) -> Float(-.f)
     | e -> Pre("-", e)
 }
+| exp CONS exp { CApp("Cons", Tuple[$1; $3]) }
 | exp PLUS exp { Bin($1, "+", $3) }
 | exp MINUS exp { Bin($1, "-", $3) }
 | exp EQUAL exp { Bin($1, "==", $3) }
