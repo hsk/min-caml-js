@@ -23,7 +23,6 @@ $ make do_test
 
 ## ソースファイル
 
-1. [type.ml](type.ml) 型定義
 2. [id.ml](id.ml) id定義
 3. [syntax.ml](syntax.ml) 構文木定義
 4. [parser.mly](parser.mly) パーサ
