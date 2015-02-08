@@ -1,6 +1,5 @@
 %{
 open Syntax
-let addtyp x = (x, Type.gentyp ())
 %}
 
 %token <bool> BOOL
@@ -52,88 +51,53 @@ let addtyp x = (x, Type.gentyp ())
 %left prec_app
 %left DOT
 
-%type <Syntax.t> exp
+%type <Syntax.e> exp
 %start exp
 
 %%
 
 simple_exp:
-| LPAREN exp RPAREN
-    { $2 }
-| BEGIN exp END
-    { $2 }
-| LPAREN RPAREN
-    { Unit }
-| BOOL
-    { Bool($1) }
-| INT
-    { Int($1) }
-| FLOAT
-    { Float($1) }
-| IDENT
-    { Var($1) }
-| simple_exp DOT LPAREN exp RPAREN
-    { Get($1, $4) }
+| LPAREN exp RPAREN { $2 }
+| BEGIN exp END { $2 }
+| LPAREN RPAREN { Unit }
+| BOOL { Bool($1) }
+| INT { Int($1) }
+| FLOAT { Float($1) }
+| IDENT { Var($1) }
+| simple_exp DOT LPAREN exp RPAREN { Get($1, $4) }
 
 exp:
-| simple_exp
-    { $1 }
-| NOT exp
-    %prec prec_app
-    { Not($2) }
-| MINUS exp
-    %prec prec_unary_minus
-    { match $2 with
+| simple_exp { $1 }
+| NOT exp %prec prec_app { Pre("!", $2) }
+| MINUS exp %prec prec_unary_minus {
+    match $2 with
     | Float(f) -> Float(-.f)
-    | e -> Neg(e) }
-| exp PLUS exp
-    { Add($1, $3) }
-| exp MINUS exp
-    { Sub($1, $3) }
-| exp EQUAL exp
-    { Eq($1, $3) }
-| exp LESS_GREATER exp
-    { Not(Eq($1, $3)) }
-| exp LESS exp
-    { Not(LE($3, $1)) }
-| exp GREATER exp
-    { Not(LE($1, $3)) }
-| exp LESS_EQUAL exp
-    { LE($1, $3) }
-| exp GREATER_EQUAL exp
-    { LE($3, $1) }
-| IF exp THEN exp ELSE exp
-    %prec prec_if
-    { If($2, $4, $6) }
-| MATCH exp WITH BAR cases
-    %prec prec_if
-    { Match($2, $5) }
-| MATCH exp WITH cases
-    %prec prec_if
-    { Match($2, $4) }
-| TYPE IDENT EQUAL BAR consts SEMISEMI exp
-    %prec prec_if
-    { Type($2, $5, $7) }
-| TYPE IDENT EQUAL consts SEMISEMI exp
-    %prec prec_if
-    { Type($2, $4, $6) }
-| MINUS_DOT exp
-    %prec prec_unary_minus
-    { FNeg($2) }
-| exp PLUS_DOT exp
-    { FAdd($1, $3) }
-| exp MINUS_DOT exp
-    { FSub($1, $3) }
-| exp AST_DOT exp
-    { FMul($1, $3) }
-| exp SLASH_DOT exp
-    { FDiv($1, $3) }
-| LET IDENT EQUAL exp IN exp
-    %prec prec_let
-    { Let(addtyp $2, $4, $6) }
-| LET REC fundef IN exp
-    %prec prec_let
-    { LetRec($3, $5) }
+    | e -> Pre("-", e)
+}
+| exp PLUS exp { Bin($1, "+", $3) }
+| exp MINUS exp { Bin($1, "-", $3) }
+| exp EQUAL exp { Bin($1, "==", $3) }
+| exp LESS_GREATER exp { Bin($1, "!=", $3) }
+| exp LESS exp { Bin($1, "<", $3) }
+| exp GREATER exp { Bin($1, ">", $3) }
+| exp LESS_EQUAL exp { Bin($1, "<=", $3) }
+| exp GREATER_EQUAL exp { Bin($1, ">=", $3) }
+| IF exp THEN exp ELSE exp %prec prec_if { If($2, $4, $6) }
+| MATCH exp WITH BAR cases %prec prec_if { Match($2, $5) }
+| MATCH exp WITH cases %prec prec_if { Match($2, $4) }
+| TYPE IDENT EQUAL BAR consts SEMISEMI exp %prec prec_if { Type($2, $5, $7) }
+| TYPE IDENT EQUAL consts SEMISEMI exp %prec prec_if { Type($2, $4, $6) }
+
+| MINUS_DOT exp %prec prec_unary_minus { Pre("-", $2) }
+| exp PLUS_DOT exp { Bin($1, "+", $3) }
+| exp MINUS_DOT exp { Bin($1, "-", $3) }
+| exp AST_DOT exp { Bin($1, "*", $3) }
+| exp SLASH_DOT exp { Bin($1, "/", $3) }
+| LET IDENT EQUAL exp IN exp %prec prec_let { Let($2, $4, $6) }
+| LET REC fundef IN exp %prec prec_let {
+    match $3 with
+    | (a,b,c) -> LetRec(a, Fun(b, c), $5)
+}
 
 | CIDENT
     %prec prec_capp
@@ -141,20 +105,13 @@ exp:
 | CIDENT exp
     %prec prec_capp
     { CApp($1, $2) }
-| exp actual_args
-    %prec prec_app
-    { App($1, $2) }
-| elems
-    { Tuple($1) }
-| LET LPAREN pat RPAREN EQUAL exp IN exp
-    { LetTuple($3, $6, $8) }
-| simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp
-    { Put($1, $4, $7) }
-| exp SEMICOLON exp
-    { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
-| ARRAY_CREATE simple_exp simple_exp
-    %prec prec_app
-    { Array($2, $3) }
+
+| exp actual_args %prec prec_app { App($1, $2) }
+| elems { Tuple($1) }
+| LET LPAREN exp RPAREN EQUAL exp IN exp { Match($6, [$3, None, $8]) }
+| simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp { Put($1, $4, $7) }
+| exp SEMICOLON exp { Let(Id.gentmp Type.Unit, $1, $3) }
+| ARRAY_CREATE simple_exp simple_exp %prec prec_app { Array($2, $3) }
 | error
     { failwith
 	(Printf.sprintf "parse error near characters %d-%d"
@@ -163,27 +120,19 @@ exp:
 
 fundef:
 | IDENT formal_args EQUAL exp
-    { (addtyp $1, $2, $4) }
+    { ($1, $2, $4) }
 
 formal_args:
-| IDENT formal_args
-    { addtyp $1 :: $2 }
-| IDENT
-    { [addtyp $1] }
+| IDENT formal_args { $1 :: $2 }
+| IDENT { [$1] }
 
 actual_args:
-| actual_args simple_exp
-    %prec prec_app
-    { $1 @ [$2] }
-| simple_exp
-    %prec prec_app
-    { [$1] }
+| actual_args simple_exp %prec prec_app { $1 @ [$2] }
+| simple_exp %prec prec_app { [$1] }
 
 elems:
-| elems COMMA exp
-    { $1 @ [$3] }
-| exp COMMA exp
-    { [$1; $3] }
+| elems COMMA exp { $1 @ [$3] }
+| exp COMMA exp { [$1; $3] }
 
 celem:
 | { [] }
@@ -192,12 +141,6 @@ celem:
 celems:
 | exp { [$1] }
 | exp COMMA celems { $1::$3 }
-
-pat:
-| pat COMMA IDENT
-    { $1 @ [addtyp $3] }
-| IDENT COMMA IDENT
-    { [addtyp $1; addtyp $3] }
 
 when1:
 | { None }

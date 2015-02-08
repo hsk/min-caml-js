@@ -1,109 +1,114 @@
 open Syntax
+let rec show_e = function
+  | Unit -> "undefined"
+  | Var s -> s
+  | Str s -> Printf.sprintf "\"%s\"" s
+  | Int s -> Printf.sprintf "%d" s
+  | Float f -> Printf.sprintf "%f" f
+  | Bool b -> Printf.sprintf "%b" b
+  | Fun(ss, e) ->
+    Printf.sprintf "function(%s){return %s;}"
+      (String.concat "," ss)
+      (show_e e)
+  | Rec ses ->
+    let ss = List.map (fun (s,e) -> s ^ ":" ^ show_e e) ses in
+    Printf.sprintf "{%s}"
+      (String.concat "," ss)
+  | App(e1,e2) -> Printf.sprintf "%s(%s)" (show_e e1) (String.concat "," (List.map(fun e -> show_e e) e2))
+  | Pre(op,e1) ->
+    Printf.sprintf "(%s %s)" op (show_e e1)
+  | Bin(e1,op,e2) ->
+    Printf.sprintf "(%s %s %s)" (show_e e1) op (show_e e2)
+  | If(e1,e2,e3) ->
+      Printf.sprintf "(%s ? %s : %s)" (show_e e1) (show_e e2) (show_e e3)
+  | Let(s,e1,e2) ->
+    Printf.sprintf "(function(%s){return %s;}(%s))"
+      s (show_e e2) (show_e e1)
+  | LetRec(s,e1,e2) ->
+    Printf.sprintf "(function(){var %s=%s;return %s;}())"
+      s (show_e e1) (show_e e2)
+  | Get(e1,e2) ->
+    Printf.sprintf "%s[%s]" (show_e e1) (show_e e2)
+  | Put(e1,e2, e3) ->
+    Printf.sprintf "%s[%s] = %s" (show_e e1) (show_e e2) (show_e e3)
+  | Raise -> "(function(){throw \"error\";}())"
+  | Match(_,_) -> assert false
+  | Tuple(es) -> assert false
+  | Array(e1, e2) -> Printf.sprintf "makeArray(%s,%s)" (show_e e1) (show_e e2)
+  | CApp(i, t) -> assert false
+  | Type(id,tys,t) -> (show_e t)
 
-(* シンプルにJavaScriptに変換する *)
-let rec h oc t =
-  let rec hs oc = function
-    | [] -> ()
-    | [x] -> Printf.fprintf oc "%a" h x
-    | x::xs -> Printf.fprintf oc "%a,%a" h x hs xs
-  in
-  match t with
-  | Syntax.Unit -> Printf.fprintf oc "undefined"
-  | Syntax.Bool(b) -> Printf.fprintf oc "%b" b
-  | Syntax.Int(i) -> Printf.fprintf oc "%d" i
-  | Syntax.Float(f) -> Printf.fprintf oc "%f" f
-  | Syntax.Not(t) -> Printf.fprintf oc "(!%a)" h t
-  | Syntax.Neg(t) -> Printf.fprintf oc "(-%a)" h t
-  | Syntax.Add(t, t2) -> Printf.fprintf oc "(%a + %a)" h t h t2
-  | Syntax.Sub(t, t2) -> Printf.fprintf oc "(%a - %a)" h t h t2
-  | Syntax.FNeg(t) -> Printf.fprintf oc "(-%a)" h t
-  | Syntax.FAdd(t, t2) -> Printf.fprintf oc "(%a + %a)" h t h t2
-  | Syntax.FSub(t, t2) -> Printf.fprintf oc "(%a - %a)" h t h t2
-  | Syntax.FMul(t, t2) -> Printf.fprintf oc "(%a * %a)" h t h t2
-  | Syntax.FDiv(t, t2) -> Printf.fprintf oc "(%a / %a)" h t h t2
-  | Syntax.Eq(t, t2) -> Printf.fprintf oc "(%a == %a)" h t h t2
-  | Syntax.LE(t, t2) -> Printf.fprintf oc "(%a <= %a)" h t h t2
-  | Syntax.If(t, t2, t3) -> Printf.fprintf oc "(%a ? %a : %a)" h t h t2 h t3
-  | Syntax.Let((id, Type.Unit), t, t2) -> Printf.fprintf oc "(%a,%a)" h t h t2
-  | Syntax.Let((id, ty), t, t2) -> Printf.fprintf oc "(function(){\nvar %s = %a;\n return %a;\n}()\n)" id h t h t2
-  | Syntax.Var(id) -> Printf.fprintf oc "%s" id
-  | Syntax.LetRec(((id,ty),args, t), t2) ->
-      let rec idtys oc = function
-        | [] -> ()
-        | [(id,t)] -> Printf.fprintf oc "%s" id
-        | (id,t)::xs -> Printf.fprintf oc "%s,%a" id idtys xs
+let rec to_if e = match e with
+  | Unit -> e
+  | Var s -> e
+  | Str s -> e
+  | Int s -> e
+  | Float _ -> e
+  | Bool _ -> e
+  | Pre (op, e1) -> Pre(op, to_if e1) 
+  | Array (e1, e2) -> Array(to_if e1, to_if e2) 
+  | Fun(ss, e) -> Fun(ss, to_if e)
+  | Rec ses -> Rec(List.map (fun (s,e)-> (s, to_if e)) ses)
+  | App(e1,e2) -> App(to_if e1, List.map to_if e2)
+  | Bin(e1,op,e2) -> Bin(to_if e1, op, to_if e2) 
+  | Let(s,e1,e2) -> Let(s, to_if e1, to_if e2)
+  | LetRec(s,e1,e2) -> LetRec(s, to_if e1, to_if e2)
+  | If(e1,e2,e3) -> If(to_if e1, to_if e2, to_if e3) 
+  | Raise -> Raise
+  | Match(e1,ees) -> cmatch (to_if e1) ees
+  | Tuple(es) -> to_if (Rec(List.mapi (fun i n -> ("_"^string_of_int i, n)) es))
+  | Get(e1,e2) -> Get(to_if e1, to_if e2) 
+  | Put(e1,e2,e3) -> Put(to_if e1, to_if e2, to_if e3) 
+  | CApp(e1,e2) -> Rec([("tag", Str e1); ("data",to_if e2)] )
+  | Type(id,tys,t) -> Type(id,tys,to_if t)
+
+and cmatch e1 ss =
+
+  (* 引き数だけコンパイル *)
+  let r = List.fold_right begin fun e str ->
+    let (m,w,f) = e in
+
+    match (to_if m,w,to_if f) with
+    | Var k, w, f ->
+      let ret = App(Fun([k],f), [Var "_"]) in
+      begin match w with
+        | None -> ret
+        | Some(e) -> If(App(Fun([k],to_if e), [Var "_"]) , ret, str)
+      end
+    | (m,w,f) ->
+      let rec mat (envs, conds) (m, e) =
+        begin match m with
+          | Var p ->
+            ((p,e)::envs, conds)
+          | Rec ms ->
+            let conds = Bin(App(Var "typeof", [e]), "==", Str "object") :: conds in
+            let conds = List.fold_left (fun conds (i,v) ->
+                Bin(Str i, "in", e) :: conds
+            ) conds ms in
+            List.fold_left (fun env (i,v) ->
+                mat env (v, Bin(e,".",Var i))
+            ) (envs, conds) ms
+          | _ ->
+            (envs, Bin(e, "==", m) :: conds)
+        end
       in
-      Printf.fprintf oc "(function(){function %s (%a) { return %a; }\nreturn %a;}())\n" id idtys args h t h t2
-  | Syntax.App(t, ts) -> Printf.fprintf oc "%a(%a)" h t hs ts
-  | Syntax.CApp(i, Syntax.Unit) -> Printf.fprintf oc "%s" i
-  | Syntax.CApp(i, t) -> Printf.fprintf oc "new %s(%a)" i h t
-  | Syntax.Tuple(ts) -> Printf.fprintf oc "[%a]" hs ts
-  | Syntax.LetTuple(its, t, t2) ->
-    let rec idtyts oc (ts,t) =
-      let id1 = Id.genid "_a_" in
-      Printf.fprintf oc "var %s = %a;" id1 h t;
-      let _ = List.fold_left begin fun n (id,_) ->
-        Printf.fprintf oc "var %s = %s[%d];" id id1 n;
-        n + 1
-      end 0 ts in
-      ()
-    in
-    Printf.fprintf oc "(function(){%a\nreturn %a;}())" idtyts (its,t) h t2
-  | Syntax.Array(t, t2) -> Printf.fprintf oc "makeArray(%a,%a)" h t h t2
-  | Syntax.Get(t, t2) -> Printf.fprintf oc "%a[%a]" h t h t2
-  | Syntax.Put(t, t2, t3) -> Printf.fprintf oc "%a[%a]=%a" h t h t2 h t3
-  | Syntax.Match(t, tts) ->
-
-    let c oc = function
-      | (Syntax.Var(v),w,t) ->
-        let cw oc = function
-          | v,None -> ()
-          | v,Some(t) -> Printf.fprintf oc "/*a*/if (function(%s){ return %a;}(__mincaml__tmp__)) " v h t
-        in
-        Printf.fprintf oc "\n%areturn (function(%s){return %a; }(__mincaml__tmp__));" cw (v,w) v h t
-      | (Syntax.CApp(v,Syntax.Unit),w,t) ->
-        let cw oc = function
-          | None -> ()
-          | Some(t) -> Printf.fprintf oc "/*b*/if (%a) " h t
-        in
-        Printf.fprintf oc "\nif(__mincaml__tmp__.tag=='%s') %a{ return %a; }" v cw w h t
-      | (Syntax.CApp(v,Syntax.Var(a)),w,t) ->
-        let cw oc = function
-          | v,None -> ()
-          | v,Some(t) -> Printf.fprintf oc "/*c*/if (function(%s){ return %a;}(__mincaml__tmp__.data)) " v h t
-        in
-        Printf.fprintf oc
-          "\nif(__mincaml__tmp__.tag=='%s') %a{ return (function(%s){ return %a; }(__mincaml__tmp__.data));}"
-          v cw (a,w) a h t
-      | (Syntax.CApp(v,Syntax.Tuple(vs)),w,t) ->
-        let cw oc = function
-          | v,None -> ()
-          | v,Some(t) -> Printf.fprintf oc "/*d*/if (function(%a){ return %a;}.apply(this,__mincaml__tmp__.data)) " hs v h t
-        in
-        Printf.fprintf oc
-          "\nif(__mincaml__tmp__.tag=='%s') %a{ return (function(%a){ return %a; }.apply(this,__mincaml__tmp__.data));}"
-            v cw (vs,w) hs vs h t
-      | (t1,w,t) ->
-        let cw oc = function
-          | None -> ()
-          | Some(t) -> Printf.fprintf oc "/*e*/if (%a) " h t
-        in
-        Printf.fprintf oc "\nif(__mincaml__tmp__==%a) %a{ return %a; }" h t1 cw w h t
-    in
-    let rec cases oc = function
-      | [] -> ()
-      | t :: ts -> Printf.fprintf oc "%a %a" c t cases ts
-    in
-    Printf.fprintf oc "(function(__mincaml__tmp__){%a}(%a))" cases tts h t
-  | Syntax.Type(id,tys,t) ->
-    let rec ptys oc = function
-    | [] -> ()
-    | (id,[])::xs ->
-      Printf.fprintf oc "var %s = {tag:'%s'};\n%a" id id ptys xs
-    | (id,ts)::xs ->
-      Printf.fprintf oc "function %s(a){this.tag='%s';this.data=a;}\n%a" id id ptys xs
-    in
-    Printf.fprintf oc "%a%a" ptys tys h t
+      (* mについてマッチさせる *)
+      let (envs,conds) = mat ([],[]) (m, Var "_") in
+      let envs = List.rev envs in
+      let conds = match w with
+        | None -> conds
+        | Some(e) ->
+          App(Fun(List.map fst envs, to_if e), List.map snd envs) :: conds
+      in 
+      let ret = App(Fun(List.map fst envs,f), List.map snd envs) in
+      if not(conds = []) then
+        If(List.fold_left (fun tl e ->
+          Bin(e, "&&", tl)
+        ) (List.hd conds) (List.tl conds), ret, str)
+      else
+        ret
+  end ss Raise in
+  App(Fun(["_"], r), [e1])
 
 let f oc ast =
   Format.eprintf "generating assembly...@.";
@@ -118,5 +123,5 @@ let f oc ast =
   Printf.fprintf oc "function truncate(a) { return a >= 0 ? Math.floor(a) : -Math.floor(-a); }\n";
   Printf.fprintf oc "function float_of_int(a){return a+0.0;}\n";
   Printf.fprintf oc "function print_newline(){console.log(\"\");}\n";
-  h oc ast
+  Printf.fprintf oc "%s\n" (show_e (to_if ast))
 

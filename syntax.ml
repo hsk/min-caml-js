@@ -1,29 +1,23 @@
-type t =
-  | Unit
-  | Bool of bool
+type e =
   | Int of int
   | Float of float
-  | Not of t
-  | Neg of t
-  | Add of t * t
-  | Sub of t * t
-  | FNeg of t
-  | FAdd of t * t
-  | FSub of t * t
-  | FMul of t * t
-  | FDiv of t * t
-  | Eq of t * t
-  | LE of t * t
-  | If of t * t * t
-  | Let of (Id.t * Type.t) * t * t
-  | Var of Id.t
-  | LetRec of ((Id.t * Type.t) * (Id.t * Type.t) list * t) * t
-  | App of t * t list
-  | Tuple of t list
-  | LetTuple of (Id.t * Type.t) list * t * t
-  | Array of t * t
-  | Get of t * t
-  | Put of t * t * t
-  | Match of t * (t * t option * t) list
-  | Type of Id.t * (Id.t * Type.t list) list * t
-  | CApp of Id.t * t
+  | Bool of bool
+  | Str of string
+  | Var of string
+  | Pre of string * e
+  | Bin of e * string * e
+  | If of e * e * e
+  | Fun of string list * e
+  | App of e * e list
+  | Let of string * e * e
+  | LetRec of string * e * e
+  | Raise
+  | Rec of (string * e) list
+  | Match of e * (e * e option * e) list
+  | Unit
+  | Tuple of e list
+  | Get of e * e
+  | Put of e * e * e
+  | Array of e * e
+  | Type of Id.t * (Id.t * Type.t list) list * e
+  | CApp of Id.t * e
