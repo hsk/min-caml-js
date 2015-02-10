@@ -9,7 +9,7 @@ $(RESULT): debug-code top
 
 clean:: nobackup
 
-SOURCES = syntax.ml parser.mly lexer.mll emit.ml main.ml
+SOURCES = syntax.ml parser.mly lexer.mll to_if.ml emit.ml main.ml
 
 TESTS = string as list1 match begin print sum-tail gcd sum fib ack even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \

@@ -8,8 +8,9 @@ inprod inprod-rec inprod-loop matmul matmul-flat variant when list
 default: mincaml do_test
 mincaml:
 	cp ../src/syntax.ml .
+	cp ../src/to_if.ml .
 	cp ../src/emit.ml .
-	ocamlc syntax.ml peg.ml parser.ml emit.ml main.ml -o $(RESULT)
+	ocamlc syntax.ml peg.ml parser.ml to_if.ml emit.ml main.ml -o $(RESULT)
 	rm -rf *.cm*
 
 .PRECIOUS: ../test/%.res ../test/%.ans ../test/%.cmp ../test/%.js
@@ -27,4 +28,4 @@ TRASH = $(TESTS:%=../test/%) $(TESTS:%=../test/%.res) $(TESTS:%=../test/%.ans) $
 	diff $^ > $@
 
 clean:
-	rm -rf *.cm* mincaml $(TRASH) emit.ml syntax.ml 
+	rm -rf *.cm* mincaml $(TRASH) to_if.ml emit.ml syntax.ml 

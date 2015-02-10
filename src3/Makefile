@@ -10,11 +10,12 @@ TRASH1 = $(TESTS:%=../test/%.res) $(TESTS:%=../test/%.ans) $(TESTS:%=../test/%.c
 .PRECIOUS: ../test/%.res ../test/%.ans ../test/%.cmp ../test/%.js
 default: mincaml test
 mincaml: $(SOURCES)
-	cp ../src2/*.ml .
 	ocamlc $(SOURCES) -o $(RESULT)
 syntax.ml: ../src/syntax.ml
-	cp ../src/syntax.ml .
 	cp ../src2/*.ml .
+	cp ../src/syntax.ml .
+to_if.ml: ../src/to_if.ml
+	cp ../src/to_if.ml .
 test: $(TESTS:%=../test/%.cmp)
 ../test/%.js: ./$(RESULT) ../test/%.ml
 	./$(RESULT) ../test/$*
@@ -25,4 +26,4 @@ test: $(TESTS:%=../test/%.cmp)
 ../test/%.cmp: ../test/%.res ../test/%.ans
 	diff $^ > $@
 clean:
-	rm -rf *.cm* mincaml $(TRASH1) syntax.ml peg.ml parser.ml main.ml
+	rm -rf *.cm* mincaml $(TRASH1) syntax.ml to_if.ml peg.ml parser.ml main.ml
