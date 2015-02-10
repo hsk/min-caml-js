@@ -61,6 +61,8 @@ rule token = parse
 | "Array.create" { ARRAY_CREATE }
 | '.' { DOT }
 | "<-" { LESS_MINUS }
+| ":=" { COLON_EQUAL }
+| '!' { EXCLAM }
 | ';' { SEMICOLON }
 | eof { EOF }
 | '"' ([^ '"' '\\'] | '\\' _)* '"' { let s = Lexing.lexeme lexbuf in STRING(String.sub s 1 ((String.length s)-2))}

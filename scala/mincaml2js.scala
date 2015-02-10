@@ -174,6 +174,7 @@ object parse extends RegexParsers {
   def sub: Parser[E] =
     "-." ~> app ^^ { a => EPre("-", a) } |
     "-" ~> app ^^ { a => EPre("-", a) } |
+    "!" ~> app ^^ { a => EBin(a,".", EVar("ref")) } |
     app
 
   def app: Parser[E] =
@@ -198,6 +199,9 @@ object parse extends RegexParsers {
           case _ => throw new Exception("error")
         }
       case a ~ b ~ None => b.foldLeft(a) { case (a, b) => EGet(a, EStr(b)) }
+    } |
+    simple_exp ~ (":=" ~> let) ^^ {
+      case a ~ b => EPut(a, EStr("ref"), b)
     } |
     simple_exp
 
@@ -354,6 +358,7 @@ object cnv {
     oc.printf("function print_int(n) { console._stdout.write(\"\"+n);}\n")
     oc.printf("var print_string = print_int;\n");
     oc.printf("function makeArray(n,v) { var a = []; for(var i = 0; i < n; i++) a[i] = v; return a; }\n")
+    oc.printf("function ref(n) { return {ref:n}; }\n")
     oc.printf("var abs_float = Math.abs;\n")
     oc.printf("var sqrt = Math.sqrt;\n")
     oc.printf("var sin = Math.sin;\n")
@@ -382,7 +387,7 @@ object main extends App {
 object test extends App {
 
   val tests = List(
-    "record", "string", "as", "list1", "match", "begin", "print", "sum-tail", "gcd", "sum", "fib", "ack", "even-odd",
+    "ref", "record", "string", "as", "list1", "match", "begin", "print", "sum-tail", "gcd", "sum", "fib", "ack", "even-odd",
     "adder", "funcomp", "cls-rec", "cls-bug", "cls-bug2",
     "shuffle", "spill", "spill2", "spill3", "join-stack", "join-stack2", "join-stack3",
     "join-reg", "join-reg2", "non-tail-if", "non-tail-if2",

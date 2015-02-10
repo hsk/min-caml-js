@@ -192,6 +192,7 @@ and sub i = i |> (
     | Float(f) -> Float (-. f)
     | a -> Pre("-", a)
   )) <|>
+  ((str "!" >> app) >>> (fun a -> Bin(a, ".", Var "ref") )) <|>
   app
 )
 and app i = i |> (
@@ -221,6 +222,9 @@ and dot i = i |> (
         | _ -> assert false
       end
     | ((a, b), None) -> List.fold_left (fun a b -> Get(a, Str b) ) a b
+  )) <|>
+  (simple_exp <~> (str ":=" >> _let) >>> (
+    fun (a,b) -> Put(a, Str "ref", b)
   )) <|>
   simple_exp
 )

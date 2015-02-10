@@ -39,12 +39,13 @@ open Syntax
 %token TYPE OF SEMISEMI AST
 %token LBRACK RBRACK CONS AT AS
 %token MUTABLE LBRACE RBRACE COLON
+%token EXCLAM COLON_EQUAL
 %token EOF
 
 %right prec_let
 %right SEMICOLON CONS AT AS
 %right prec_if
-%right LESS_MINUS
+%right LESS_MINUS COLON_EQUAL
 %left COMMA
 %left EQUAL LESS_GREATER LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS PLUS_DOT MINUS_DOT
@@ -92,6 +93,7 @@ exp:
     | Float(f) -> Float(-.f)
     | e -> Pre("-", e)
 }
+| EXCLAM exp %prec prec_unary_minus { Bin($2,".",Var "ref") }
 | exp CONS exp { CApp("Cons", Tuple[$1; $3]) }
 | exp AT exp { App(Var "concat", [$1; $3]) }
 | exp AS IDENT { Bin($1, "as", Var $3) }
@@ -133,6 +135,7 @@ exp:
 | LET LBRACE fields RBRACE EQUAL exp IN exp { Match($6, [Rec $3, None, $8]) }
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp { Put($1, $4, $7) }
 | simple_exp DOT IDENT LESS_MINUS exp { Put($1, Str $3, $5) }
+| simple_exp COLON_EQUAL exp { Put($1, Str "ref", $3) }
 | exp SEMICOLON exp { Let(Syntax.gentmp (), $1, $3) }
 | ARRAY_CREATE simple_exp simple_exp %prec prec_app { Array($2, $3) }
 | error
