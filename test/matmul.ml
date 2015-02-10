@@ -29,12 +29,4 @@ a.(1).(0) <- 4.; a.(1).(1) <- 5.; a.(1).(2) <- 6.;
 b.(0).(0) <- 7.; b.(0).(1) <- 8.;
 b.(1).(0) <- 9.; b.(1).(1) <- 10.;
 b.(2).(0) <- 11.; b.(2).(1) <- 12.;
-mul 2 3 2 a b c;
-print_int (truncate (c.(0).(0)));
-print_newline ();
-print_int (truncate (c.(0).(1)));
-print_newline ();
-print_int (truncate (c.(1).(0)));
-print_newline ();
-print_int (truncate (c.(1).(1)));
 print_newline ()

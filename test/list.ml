@@ -5,7 +5,7 @@ let rec concat xs ys =
   | [] -> ys
   | x::xs -> x::(concat xs ys)
 in
-let ls = [(let a = 1 in a);2;3] @ [4;5] in
+let ls = [(let a = 1 in a);2;3] @ [4;5] @ [6] in
 print_int(hd ls);print_newline();
 print_int(hd (tl ls));print_newline();
 let rec sum a ls =

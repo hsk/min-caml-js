@@ -36,11 +36,11 @@ open Syntax
 %token BEGIN END
 %token MATCH WITH WHEN ARROW BAR
 %token TYPE OF SEMISEMI AST
-%token LBRACK RBRACK CONS AT
+%token LBRACK RBRACK CONS AT AS
 %token EOF
 
 %right prec_let
-%right SEMICOLON CONS AT
+%right SEMICOLON CONS AT AS
 %right prec_if
 %right LESS_MINUS
 %left COMMA
@@ -82,6 +82,8 @@ exp:
 }
 | exp CONS exp { CApp("Cons", Tuple[$1; $3]) }
 | exp AT exp { App(Var "concat", [$1; $3]) }
+| exp AS IDENT { Bin($1, "as", Var $3) }
+
 | exp PLUS exp { Bin($1, "+", $3) }
 | exp MINUS exp { Bin($1, "-", $3) }
 | exp EQUAL exp { Bin($1, "==", $3) }

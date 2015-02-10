@@ -1,21 +1,31 @@
 # mincaml-js
 
-mincaml-jsはocamlのサブセットである、mincamlからJavaScriptへのトランスレータです。
+mincaml-jsはocamlのサブセットからJavaScriptへ変換するトランスレータ言語です。
 トランスレータにのみ特化することで、シンプルさを維持します。
 mincaml-jsはmincamlにいくつかの機能が追加されています。
+
+srcへ移動し、
 
 ```
 $ make
 ```
+
 でビルドします。
 
 ```
 $ mincaml test/fib
 $ node test/fib.js
 ```
+
 等として使います。
 
-テストをするには
+mincaml2jsには、３つのバージョンがあります。 
+
+1. ocamlyacc によるバージョン
+2. パーサコンビネータによるバージョン
+3. scalaのパーサコンビネータによるバージョン
+
+## テスト
 
 ```
 $ make do_test
@@ -23,12 +33,20 @@ $ make do_test
 
 ## ソースファイル
 
-2. [id.ml](id.ml) id定義
-3. [syntax.ml](syntax.ml) 構文木定義
-4. [parser.mly](parser.mly) パーサ
-5. [lexer.mll](lexer.mll) レキサー
-6. [emit.ml](emit.ml) JavaScript出力
-7. [main.ml](main.ml) メイン
+1. ocamlyaccバージョン
+    1. [syntax.ml](src/syntax.ml) 構文木定義
+    2. [parser.mly](src/parser.mly) パーサ
+    3. [lexer.mll](src/lexer.mll) レキサー
+    4. [emit.ml](src/emit.ml) JavaScript出力
+    5. [main.ml](src/main.ml) メイン
+2. パーサコンビネータバージョン
+    1. [syntax.ml](src2/syntax.ml) 構文木定義
+    2. [peg.ml](src2/peg.ml) パーサコンビネータライブラリ
+    3. [parser.ml](src2/parser.ml) パーサ
+    4. [emit.ml](src2/emit.ml) JavaScript出力
+    5. [main.ml](src2/main.ml) メイン
+3. Scalaバージョン
+    1. [mincaml2js.scala](scala/mincaml2js.scala) Scalaバージョン(1ソース)
 
 ## TODO
 
@@ -38,14 +56,14 @@ $ make do_test
 
 - 仕様追加
 	- [x] begin end
-    - [ ] パターンマッチング構文
+    - [x] パターンマッチング構文
         - [x] match e with | p1 -> e1 | ... | pn -> en
         - [x] _
         - [x] 値バインディング
         - [x] ネストした値バインディング
         - [x] ネストした値の比較
         - [x] whenによるガード
-        - [ ] asでの値バインディング
+        - [x] asでの値バインディング
     - [ ] リスト
     	- [x] [e1;...;en]でのリストの構築
     	- [x] e::el によるリストへの追加

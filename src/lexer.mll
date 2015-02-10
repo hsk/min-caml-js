@@ -16,6 +16,7 @@ rule token = parse
 | ']' { RBRACK }
 | "::" { CONS }
 | '@' { AT }
+| "as" { AS }
 | "begin" { BEGIN }
 | "end" { END }
 | "match" { MATCH }

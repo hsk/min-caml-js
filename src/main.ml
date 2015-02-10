@@ -1,5 +1,5 @@
 let lexbuf outchan l =
-  Id.counter := 0;
+  Syntax.counter := 0;
   Emit.f outchan (Parser.exp Lexer.token l)
 
 let string s = lexbuf stdout (Lexing.from_string s)
