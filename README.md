@@ -38,21 +38,23 @@ $ make do_test
     1. [syntax.ml](src/syntax.ml) 構文木定義
     2. [parser.mly](src/parser.mly) パーサ
     3. [lexer.mll](src/lexer.mll) レキサー
-    4. [emit.ml](src/emit.ml) JavaScript出力
-    5. [main.ml](src/main.ml) メイン
+    4. [to_if.ml](src/to_if.ml) match if 変換
+    5. [emit.ml](src/emit.ml) JavaScript出力
+    6. [main.ml](src/main.ml) メイン
 2. パーサコンビネータバージョン
     1. [syntax.ml](src/syntax.ml) 構文木定義
     2. [peg.ml](src2/peg.ml) パーサコンビネータライブラリ
     3. [parser.ml](src2/parser.ml) パーサ
-    4. [emit.ml](src/emit.ml) JavaScript出力
-    5. [main.ml](src2/main.ml) メイン
+    4. [to_if.ml](src/to_if.ml) match if 変換
+    5. [emit.ml](src/emit.ml) JavaScript出力
+    6. [main.ml](src2/main.ml) メイン
 3. Scalaバージョン
     1. [mincaml2js.scala](scala/mincaml2js.scala) Scalaバージョン(1ソース)
 4. より奇麗なJavaScriptの出力バージョン
     1. [syntax.ml](src/syntax.ml) 構文木定義
     2. [peg.ml](src2/peg.ml) パーサコンビネータライブラリ
     3. [parser.ml](src2/parser.ml) パーサ
-    4. [to_if.ml](src3/to_if.ml) match if 変換
+    4. [to_if.ml](src/to_if.ml) match if 変換
     5. [alpha.ml](src3/alpha.ml) α変換
     6. [javascript.ml](src3/javascript.ml) javascript変換
     7. [emit.ml](src3/emit.ml) JavaScript出力
