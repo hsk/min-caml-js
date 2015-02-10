@@ -21,8 +21,8 @@ open Syntax
 %token IF
 %token THEN
 %token ELSE
-%token <Id.t> IDENT
-%token <Id.t> CIDENT
+%token <string> IDENT
+%token <string> CIDENT
 %token LET
 %token IN
 %token REC
@@ -120,7 +120,7 @@ exp:
 | elems { Tuple($1) }
 | LET LPAREN exp RPAREN EQUAL exp IN exp { Match($6, [$3, None, $8]) }
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp { Put($1, $4, $7) }
-| exp SEMICOLON exp { Let(Id.gentmp (), $1, $3) }
+| exp SEMICOLON exp { Let(Syntax.gentmp (), $1, $3) }
 | ARRAY_CREATE simple_exp simple_exp %prec prec_app { Array($2, $3) }
 | error
     { failwith

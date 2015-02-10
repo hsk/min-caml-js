@@ -53,7 +53,7 @@ rule token = parse
 | "in" { IN }
 | "rec" { REC }
 | ',' { COMMA }
-| '_' { IDENT(Id.gentmp ()) }
+| '_' { IDENT(Syntax.gentmp ()) }
 | "Array.create" { ARRAY_CREATE }
 | '.' { DOT }
 | "<-" { LESS_MINUS }
