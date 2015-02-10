@@ -43,8 +43,9 @@ $ make do_test
     1. [syntax.ml](src/syntax.ml) 構文木定義
     2. [peg.ml](src2/peg.ml) パーサコンビネータライブラリ
     3. [parser.ml](src2/parser.ml) パーサ
-    4. [emit.ml](src/emit.ml) JavaScript出力
-    5. [main.ml](src2/main.ml) メイン
+    4. [to_if.ml](src/to_if.ml) match if 変換
+    5. [emit.ml](src/emit.ml) JavaScript出力
+    6. [main.ml](src2/main.ml) メイン
 3. Scalaバージョン
     1. [mincaml2js.scala](scala/mincaml2js.scala) Scalaバージョン(1ソース)
 
@@ -78,3 +79,5 @@ $ make do_test
         - [x] タプル type i = Add of i * i | Int of i
         - [ ] リストの使用 type i = I of int list 
     - [ ]文字列
+        - [x] 文字列リテラル
+        
