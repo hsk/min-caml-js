@@ -3,7 +3,6 @@ open Syntax
 let rec f e = match e with
   | Unit | Var _ | Str _ | Int _ | Float _ | Bool _ | Raise _ -> e
   | Pre (op, e1) -> Pre(op, f e1) 
-  | Array (e1, e2) -> App(Var "makeArray", [f e1; f e2]) 
   | Fun(ss, e) -> Fun(ss, f e)
   | Rec ses -> let rec f1 e = match e with (s,e) -> (s, f e) in Rec(List.map f1 ses)
   | App(e1,e2) -> App(f e1, List.map f e2)
@@ -11,9 +10,11 @@ let rec f e = match e with
   | Let(s,e1,e2) -> Let(s, f e1, f e2)
   | LetRec(s,e1,e2) -> LetRec(s, f e1, f e2)
   | If(e1,e2,e3) -> If(f e1, f e2, f e3) 
-  | Tuple(es) -> let rec f1 i n = ("_"^string_of_int i, n) in f (Rec(List.mapi f1 es))
   | Get(e1,e2) -> Get(f e1, f e2) 
   | Put(e1,e2,e3) -> Put(f e1, f e2, f e3) 
+
+  | Tuple(es) -> let rec f1 i n = ("_"^string_of_int i, n) in f (Rec(List.mapi f1 es))
+  | Array (e1, e2) -> App(Var "makeArray", [f e1; f e2]) 
   | CApp(e1,e2) -> Rec([("tag", Str e1); ("data",f e2)] )
   | Match(e1,ss) ->
     let rec mat e me =

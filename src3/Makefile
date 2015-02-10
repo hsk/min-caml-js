@@ -5,7 +5,7 @@ adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
 inprod inprod-rec inprod-loop matmul matmul-flat variant when list
-SOURCES =  syntax.ml peg.ml parser.ml to_if.ml emit.ml main.ml
+SOURCES = syntax.ml peg.ml parser.ml to_if.ml alpha.ml javascript.ml emit.ml main.ml
 TRASH1 = $(TESTS:%=../test/%.res) $(TESTS:%=../test/%.ans) $(TESTS:%=../test/%.cmp) $(TESTS:%=../test/%.js)
 .PRECIOUS: ../test/%.res ../test/%.ans ../test/%.cmp ../test/%.js
 default: mincaml test
