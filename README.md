@@ -88,7 +88,7 @@ $ make do_test
     - [x] リファレンス
     - [x] レコード
     - [ ] トップレベル
-        — [ ] let a = b
+        - [ ] let a = b
         - [ ] let rec a = b
         - [ ] exp
         - [ ] type a = b
