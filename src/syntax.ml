@@ -13,13 +13,13 @@ type e =
   | LetRec of string * e * e
   | Raise of string
   | Rec of (string * e) list
-  | Match of e * (e * e option * e) list
   | Unit
-  | Tuple of e list
   | Get of e * e
   | Put of e * e * e
   | Array of e * e
   | CApp of string * e
+  | Tuple of e list
+  | Match of e * (e * e option * e) list
 
 let counter = ref 0
 let genid s =

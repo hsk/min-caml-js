@@ -4,20 +4,18 @@ mincaml-jsはocamlのサブセットからJavaScriptへ変換するトランス�
 トランスレータにのみ特化することで、シンプルさを維持します。
 mincaml-jsはmincamlにいくつかの機能が追加されています。
 
-srcへ移動し、
+src,src2,src3,scalaへそれぞれ移動してmakeを実行します。
 
 ```
 $ make
 ```
 
-でビルドします。
+使い方は以下のように`./mincaml [拡張子なしのファイル名]`で、.mlファイルから.jsファイルを生成し、NodeJSで実行します。
 
 ```
-$ mincaml test/fib
+$ ./mincaml test/fib
 $ node test/fib.js
 ```
-
-等として使います。
 
 mincaml2jsには、4つのバージョンがあります。 
 
@@ -89,6 +87,6 @@ $ make do_test
         - [x] type i = I of int;; I(11)
         - [x] タプル type i = Add of i * i | Int of i
         - [ ] リストの使用 type i = I of int list 
-    - [ ]文字列
+    - [ ] 文字列
         - [x] 文字列リテラル
         
