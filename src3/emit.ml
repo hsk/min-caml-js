@@ -60,6 +60,7 @@ and o_s2 fp = function
 let to_js oc e =
   Syntax.counter := 0;
   let a = Alpha.f e in
+  let a = Inline.f e in
   (*Format.fprintf Format.std_formatter "//a=%a@." show_e a;*)
   let b = Javascript.f a in
   (*Format.fprintf Format.std_formatter "//b=%a@." p_s b;*)

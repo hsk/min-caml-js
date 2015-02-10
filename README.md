@@ -94,4 +94,10 @@ $ make do_test
         - [ ] type a = b
         - [ ] open
         - [ ] module = struct ... end
-
+    - [ ] 最適化
+        - [x] α変換 alpha
+        - [x] javascript変換 javascript
+        - [ ] インライン展開 inline
+        - [ ] ネストしたletの簡約 assoc
+        - [ ] 定数畳み込み constfold
+        - [ ] 不要定義削除 elim

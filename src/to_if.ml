@@ -23,7 +23,7 @@ let rec f e = match e with
       | (envs, conds), (Var p, e) -> ((p,e)::envs, conds)
       | (envs, conds), (Rec ms, e) ->
         let f1 env iv = match iv with
-          | (i,v) -> mat env (v, Bin(e,".",Var i))
+          | (i,v) -> mat env (v, Get(e,Str i))
         in
         List.fold_left f1 (envs, conds) ms
       | (envs, conds), (m, e) ->

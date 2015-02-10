@@ -192,7 +192,7 @@ and sub i = i |> (
     | Float(f) -> Float (-. f)
     | a -> Pre("-", a)
   )) <|>
-  ((str "!" >> app) >>> (fun a -> Bin(a, ".", Var "ref") )) <|>
+  ((str "!" >> app) >>> (fun a -> Get(a, Str "ref") )) <|>
   app
 )
 and app i = i |> (

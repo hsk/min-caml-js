@@ -24,11 +24,11 @@ type e =
 let counter = ref 0
 let genid s =
   incr counter;
-  Printf.sprintf "__mincaml__tmp__%s__%d" s !counter
+  Printf.sprintf "T%s_%d" s !counter
 
 let gentmp () =
   incr counter;
-  Printf.sprintf "__mincaml__tmp__%d" !counter
+  Printf.sprintf "T%d" !counter
 
 let rec show_e f = function
   | Int i -> Format.fprintf f "Int(%d)@?" i
