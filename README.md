@@ -40,10 +40,10 @@ $ make do_test
     4. [emit.ml](src/emit.ml) JavaScript出力
     5. [main.ml](src/main.ml) メイン
 2. パーサコンビネータバージョン
-    1. [syntax.ml](src2/syntax.ml) 構文木定義
+    1. [syntax.ml](src/syntax.ml) 構文木定義
     2. [peg.ml](src2/peg.ml) パーサコンビネータライブラリ
     3. [parser.ml](src2/parser.ml) パーサ
-    4. [emit.ml](src2/emit.ml) JavaScript出力
+    4. [emit.ml](src/emit.ml) JavaScript出力
     5. [main.ml](src2/main.ml) メイン
 3. Scalaバージョン
     1. [mincaml2js.scala](scala/mincaml2js.scala) Scalaバージョン(1ソース)
