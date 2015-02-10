@@ -5,6 +5,7 @@ open Syntax
 %token <bool> BOOL
 %token <int> INT
 %token <float> FLOAT
+%token <string> STRING
 %token NOT
 %token MINUS
 %token PLUS
@@ -65,6 +66,7 @@ simple_exp:
 | BOOL { Bool($1) }
 | INT { Int($1) }
 | FLOAT { Float($1) }
+| STRING { Str($1) }
 | IDENT { Var($1) }
 | simple_exp DOT LPAREN exp RPAREN { Get($1, $4) }
 

@@ -59,6 +59,7 @@ rule token = parse
 | "<-" { LESS_MINUS }
 | ';' { SEMICOLON }
 | eof { EOF }
+| '"' ([^ '"' '\\'] | '\\' _)* '"' { let s = Lexing.lexeme lexbuf in STRING(String.sub s 1 ((String.length s)-2))}
 | upper (digit|lower|upper|'_')* { CIDENT(Lexing.lexeme lexbuf) }
 | lower (digit|lower|upper|'_')* { IDENT(Lexing.lexeme lexbuf) }
 | _ {

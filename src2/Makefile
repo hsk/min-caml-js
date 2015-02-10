@@ -1,5 +1,5 @@
 RESULT = mincaml
-TESTS = as list1 match begin print sum-tail gcd sum fib ack even-odd \
+TESTS = string as list1 match begin print sum-tail gcd sum fib ack even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
@@ -12,6 +12,7 @@ mincaml:
 	ocamlc syntax.ml peg.ml parser.ml emit.ml main.ml -o $(RESULT)
 	rm -rf *.cm*
 
+.PRECIOUS: ../test/%.res ../test/%.ans ../test/%.cmp ../test/%.js
 do_test: $(TESTS:%=../test/%.cmp)
 
 TRASH = $(TESTS:%=../test/%) $(TESTS:%=../test/%.res) $(TESTS:%=../test/%.ans) $(TESTS:%=../test/%.cmp) $(TESTS:%=../test/%.js)

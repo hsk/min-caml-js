@@ -11,7 +11,7 @@ clean:: nobackup
 
 SOURCES = syntax.ml parser.mly lexer.mll emit.ml main.ml
 
-TESTS = as list1 match begin print sum-tail gcd sum fib ack even-odd \
+TESTS = string as list1 match begin print sum-tail gcd sum fib ack even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \

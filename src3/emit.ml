@@ -302,6 +302,7 @@ let to_js oc e =
 let f oc ast =
   Format.eprintf "generating javascript...@.";
   Printf.fprintf oc "function print_int(n) { console._stdout.write(\"\"+n);}\n";
+  Printf.fprintf oc "var print_string = print_int;\n";
   Printf.fprintf oc "function makeArray(n,v) { var a = []; for(var i = 0; i < n; i++) a[i] = v; return a; }\n";
   Printf.fprintf oc "var abs_float = Math.abs;\n";
   Printf.fprintf oc "var sqrt = Math.sqrt;\n";

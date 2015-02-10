@@ -56,6 +56,7 @@ object parse extends RegexParsers {
     """-?([1-9][0-9]*|0)""".r ^^ { a => EInt(a.toInt) } |
     """true""".r ^^ { a => EBool(true) } |
     """false""".r ^^ { a => EBool(false) } |
+    "\"([^\"\\\\]|\\\\.)*\"".r ^^ { a => EStr(a.substring(1,a.length-1)) } |
     "(" ~> ")" ^^ { a => EUnit } |
     "[" ~> "]" ^^ { a => ECApp("Nil", EUnit) } |
     ("[" ~> let) ~ (rep(";" ~> let) <~ "]") ^^ {
@@ -327,6 +328,7 @@ object cnv {
 
     println("generating javascript...")
     oc.printf("function print_int(n) { console._stdout.write(\"\"+n);}\n")
+    oc.printf("var print_string = print_int;\n");
     oc.printf("function makeArray(n,v) { var a = []; for(var i = 0; i < n; i++) a[i] = v; return a; }\n")
     oc.printf("var abs_float = Math.abs;\n")
     oc.printf("var sqrt = Math.sqrt;\n")
@@ -355,7 +357,7 @@ object main extends App {
 object test extends App {
 
   val tests = List(
-    "as", "list1", "match", "begin", "print", "sum-tail", "gcd", "sum", "fib", "ack", "even-odd",
+    "string", "as", "list1", "match", "begin", "print", "sum-tail", "gcd", "sum", "fib", "ack", "even-odd",
     "adder", "funcomp", "cls-rec", "cls-bug", "cls-bug2",
     "shuffle", "spill", "spill2", "spill3", "join-stack", "join-stack2", "join-stack3",
     "join-reg", "join-reg2", "non-tail-if", "non-tail-if2",

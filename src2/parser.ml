@@ -52,11 +52,16 @@ let int_ i = i |> (
      <|> (str "0"))
 )
 
+let rec str_ i = i |> (
+  (skip >> nstr "\"" >> (rep((nstr "\\" <~> any_char () >>> (fun(a,b)->a^b)) <|> (notp (nstr "\"") >> any_char ())) << nstr "\"") >>> (fun a -> String.concat "" a))
+)
+
 let rec simple_exp i = i |> (
   (str "true" >>> (fun _ -> Bool true)) <|>
   (str "false" >>> (fun _ -> Bool false)) <|>
   (float_ >>> (fun a -> Float(float_of_string a))) <|>
   (int_ >>> (fun e -> Int(int_of_string e))) <|>
+  (str_ >>> (fun e -> Str(e))) <|>
   (str "(" >> str ")" >>> (fun _ -> Unit)) <|>
   (str "[" >> str "]" >>> (fun _ -> CApp("Nil", Unit) )) <|>
   ((str "[" >> _let) <~> rep(str ";" >> _let) << str "]" >>> (fun (a,bs) ->
