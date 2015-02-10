@@ -27,3 +27,4 @@ test: $(TESTS:%=../test/%.cmp)
 	diff $^ > $@
 clean:
 	rm -rf *.cm* mincaml $(TRASH1) syntax.ml to_if.ml peg.ml parser.ml main.ml
+
