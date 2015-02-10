@@ -4,7 +4,7 @@ open Syntax
 
 let keywords = [
   "let"; "in"; "if"; "else"; "then"; "true"; "false";
-  "match"; "with"; "when"; "begin"; "end"; "type"; "as"
+  "match"; "with"; "when"; "begin"; "end"; "type"; "as"; "mutable"
 ]
 
 let ident i = i |> (
@@ -69,10 +69,17 @@ let rec simple_exp i = i |> (
       CApp("Cons", Tuple([a; b]))
     ) (a :: bs) (CApp("Nil", Unit))
   )) <|>
+  (str "{" >> fields << str "}" >>> (fun a -> Rec a)) <|>
   (ident >>> (fun a -> Var a)) <|>
   (cident <~> rep1(str "." >> ident) >>> (fun (a,b) -> Var (String.concat "." (a::b) ))) <|>
   (str "begin" >> exp << str "end" >>> (fun e -> e)) <|>
   (str "(" >> exp << str ")" >>> (fun e -> e))
+)
+and field i = i |> (
+  (ident << str "=") <~> _let >>> (fun (a,b) -> (a,b))
+)
+and fields i = i |> (
+  ((field <~> rep(str ";" >> field)) >>> (fun (a,b) -> a::b))
 )
 and exp i = i |> (
   (_let <~> rep(str ";" >> _let) >>> (fun (a, bs) ->
@@ -87,6 +94,10 @@ and _let i = i |> (
     ((str "(" >> str ")" >>> (fun a -> [] )) <|> rep(ident)) <~>
     (str "=" >> exp) <~> (str "in" >> exp)
     >>> (fun (((a,r),b),c) -> LetRec(a, Fun(r, b), c))
+  ) <|>
+  ((str "let" >> str "{" >> fields << str "}") <~>
+    (str "=" >> exp) <~> (str "in" >> exp)
+    >>> (fun ((a,b),c) -> Match(b, [(Rec(a), None, c)]))
   ) <|>
   ((str "let" >> str "(" >> exp << str ")") <~>
     (str "=" >> exp) <~> (str "in" >> exp)
@@ -116,11 +127,22 @@ and _if i = i |> (
     >>> (fun ((a,b),c) ->
       Match(a, List.map (fun ((a,b),c) -> (a, b, c)) (b :: c))
   )) <|>
-  (str "type" >> ident >> str "=" >> opt(str "|") >> consts >> str ";;" >> exp) <|>
+  (str "type" >> ident >> str "=" >> typ >> str ";;" >> exp) <|>
   tuple
 )
 and types i = i |> (
   ident <~> rep(str "*" >> ident) >>> (fun (a, b) -> a :: b)
+)
+and tyrec  i = i |> (
+  opt(str "mutable")<~>(ident << str ":") <~> typ >>> (fun a -> "")
+)
+and tyrecs i = i |> (
+  tyrec <~> rep(str ";" >> tyrec) >>> (fun a -> "")
+)
+and typ i = i |> (
+  (opt(str "|") >> consts >>> (fun a -> "")) <|>
+  (types >>> (fun a -> "")) <|>
+  (str "{" >> tyrecs << str "}" >>> (fun a -> ""))
 )
 and const i = i |> (
   (cident <~> (str "of" >> types) >>> (fun (a, b) -> (a, b))) <|>
@@ -190,6 +212,15 @@ and dot i = i |> (
         | _ -> assert false
       end
     | ((a,b), None) -> List.fold_left (fun a b -> Get(a, b) ) a b
+  )) <|>
+  (simple_exp <~> rep1(str "." >> ident) <~> opt(str "<-" >> _let) >>> (
+    function
+    | ((a, b), Some(c)) ->
+      begin match List.fold_left (fun a b -> Get(a, Str b) ) a b with 
+        | Get(a, b) -> Put(a, b, c)
+        | _ -> assert false
+      end
+    | ((a, b), None) -> List.fold_left (fun a b -> Get(a, Str b) ) a b
   )) <|>
   simple_exp
 )

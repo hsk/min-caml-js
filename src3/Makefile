@@ -1,6 +1,6 @@
 .PHONY: clean all default
 RESULT = mincaml
-TESTS = string as list1 match begin print sum-tail gcd sum fib ack even-odd \
+TESTS = record string as list1 match begin print sum-tail gcd sum fib ack even-odd \
 adder funcomp cls-rec cls-bug cls-bug2 \
 shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
 join-reg join-reg2 non-tail-if non-tail-if2 \
@@ -12,7 +12,9 @@ default: mincaml test
 mincaml: $(SOURCES)
 	ocamlc $(SOURCES) -o $(RESULT)
 syntax.ml: ../src/syntax.ml
-	cp ../src2/*.ml .
+	cp ../src2/peg.ml .
+	cp ../src2/parser.ml .
+	cp ../src2/main.ml .
 	cp ../src/syntax.ml .
 to_if.ml: ../src/to_if.ml
 	cp ../src/to_if.ml .

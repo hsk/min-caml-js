@@ -52,6 +52,10 @@ rule token = parse
 | "let" { LET }
 | "in" { IN }
 | "rec" { REC }
+| "mutable" { MUTABLE }
+| '{' { LBRACE }
+| '}' { RBRACE }
+| ':' { COLON }
 | ',' { COMMA }
 | '_' { IDENT(Syntax.gentmp ()) }
 | "Array.create" { ARRAY_CREATE }

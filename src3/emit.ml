@@ -30,7 +30,7 @@ let rec o_j fp = function
   | JPre(op,e1) -> Format.fprintf fp "(%s %a)" op o_j e1
   | JApp(e,es) -> Format.fprintf fp "%a(%a)" o_j e o_js es
   | JIf(e1,e2,e3) -> Format.fprintf fp "(%a ? %a : %a)" o_j e1 o_j e2 o_j e3
-  | JFun(is, s) -> Format.fprintf fp "function(%a){%a}" o_is is o_s s
+  | JFun(is, s) -> Format.fprintf fp "(function(%a){%a})" o_is is o_s s
   | JRec(ies) -> Format.fprintf fp "{%a}" o_ijs ies
 
 and o_js fp js =

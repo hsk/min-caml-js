@@ -31,7 +31,7 @@ object parse extends RegexParsers {
 
   val keywords = List(
     "let", "in", "if", "else", "then", "true", "false",
-    "match", "with", "when", "begin", "end", "type", "as")
+    "match", "with", "when", "begin", "end", "type", "as","mutable")
 
   var counter = 0
 
@@ -41,7 +41,7 @@ object parse extends RegexParsers {
   }
 
   def IDENT: Parser[String] =
-    """[_a-z][_a-zA-Z0-9]*|([_A-Z][_a-zA-Z0-9]*\.)+[_a-z][_a-zA-Z0-9]*""".r ^? {
+    """[_a-z][_a-zA-Z0-9]*|([A-Z][_a-zA-Z0-9]*\.)+[_a-z][_a-zA-Z0-9]*""".r ^? {
       case "_" => genid("")
       case a if (!keywords.contains(a)) => a
     }
@@ -65,9 +65,10 @@ object parse extends RegexParsers {
           ECApp("Cons", ETuple(List(a, b)))
       }
     } |
-    IDENT ~ rep("." ~> IDENT) ^^ {
-      case a ~ b =>
-        EVar((a :: b).mkString("."))
+    "{" ~> fields <~ "}" ^^ { case a => ERec(a) } |
+    IDENT ^^ {
+      case a =>
+        EVar(a)
     } |
     "begin" ~> exp <~ "end" |
     "(" ~> exp <~ ")"
@@ -79,6 +80,10 @@ object parse extends RegexParsers {
       }
     }
 
+
+  def field = (IDENT <~ "=") ~ let ^^  {case a~b => (a,b) }
+  def fields = field ~ rep(";" ~> field) ^^ {case a~b => a::b }
+
   def let: Parser[E] =
     ("let" ~> "rec" ~> IDENT) ~ (("(" ~> ")" ^^ {
       a => List() }) | rep(IDENT)) ~ ("=" ~> exp) ~ ("in" ~> exp) ^^ {
@@ -86,6 +91,9 @@ object parse extends RegexParsers {
     } |
     ("let" ~> IDENT) ~ ("=" ~> exp) ~ ("in" ~> exp) ^^ {
       case a ~ b ~ c => ELet(a, b, c)
+    } |
+    ("let" ~> "{" ~> fields <~ "}") ~ ("=" ~> exp) ~ ("in" ~> exp) ^^ {
+      case a ~ b ~ c => EMatch(b, List((ERec(a), None, c)))
     } |
     ("let" ~> "(" ~> exp <~ ")") ~ ("=" ~> exp) ~ ("in" ~> exp) ^^ {
       case a ~ b ~ c => EMatch(b, List((a, None, c)))
@@ -110,12 +118,20 @@ object parse extends RegexParsers {
       case a ~ b ~ c =>
         EMatch(a, (b :: c).map { case a ~ b ~ c => (a, b, c) })
     } |
-    "type" ~> IDENT ~> "=" ~> opt("|") ~> consts ~> ";;" ~> exp ^^ { a => a } |
+    "type" ~> IDENT ~> "=" ~> typ ~> ";;" ~> exp ^^ { a => a } |
     tuple
 
   def types: Parser[List[String]] =
     IDENT ~ rep("*" ~> IDENT) ^^ { case a ~ b => a :: b }
 
+
+  def tyrec = opt("mutable")~(IDENT <~ ":") ~ typ ^^ { case a => "" }
+  def tyrecs = tyrec ~ rep(";" ~> tyrec) ^^ { case a => "" }
+
+  def typ: Parser[String] =
+    opt("|") ~> consts ^^ {case a => ""} |
+    types ^^ {case a => ""} |
+    "{" ~> tyrecs <~ "}" ^^ { case a => "" }
   def const: Parser[(String,List[String])] =
     CIDENT ~ ("of" ~> types) ^^ { case a ~ b => (a, b) } |
     CIDENT ^^ { a => (a, List()) }
@@ -174,6 +190,14 @@ object parse extends RegexParsers {
           case _ => throw new Exception("error")
         }
       case a ~ b ~ None => b.foldLeft(a) { case (a, b) => EGet(a, b) }
+    } |
+    simple_exp ~ rep1("." ~> IDENT) ~ opt("<-" ~> let) ^^ {
+      case a ~ b ~ Some(c) =>
+        b.foldLeft(a) { case (a, b) => EGet(a, EStr(b)) } match {
+          case EGet(a, b) => EPut(a, b, c)
+          case _ => throw new Exception("error")
+        }
+      case a ~ b ~ None => b.foldLeft(a) { case (a, b) => EGet(a, EStr(b)) }
     } |
     simple_exp
 
@@ -343,6 +367,7 @@ object cnv {
 
   def apply(path: String) {
     val e = parse(exec.readAll(path + ".ml"))
+    //println(e)
     asm.open(path + ".js")
     cnv.f(asm.p, e)
     asm.close()
@@ -357,7 +382,7 @@ object main extends App {
 object test extends App {
 
   val tests = List(
-    "string", "as", "list1", "match", "begin", "print", "sum-tail", "gcd", "sum", "fib", "ack", "even-odd",
+    "record", "string", "as", "list1", "match", "begin", "print", "sum-tail", "gcd", "sum", "fib", "ack", "even-odd",
     "adder", "funcomp", "cls-rec", "cls-bug", "cls-bug2",
     "shuffle", "spill", "spill2", "spill3", "join-stack", "join-stack2", "join-stack3",
     "join-reg", "join-reg2", "non-tail-if", "non-tail-if2",
