@@ -79,14 +79,19 @@ $ make do_test
     	- [x] e::el によるリストへの追加
     	- [x] e @ e でのリストの結合
     	- [ ] Listモジュール
-    - [ ] モジュール
-    	- [ ] open
-    	- [ ] module = struct ... end
-    - [ ] トップレベル
     - [ ] 代数データ型
         - [x] type i = I of int;; I(11)
         - [x] タプル type i = Add of i * i | Int of i
         - [ ] リストの使用 type i = I of int list 
     - [ ] 文字列
         - [x] 文字列リテラル
-        
+    - [x] リファレンス
+    - [x] レコード
+    - [ ] トップレベル
+        — [ ] let a = b
+        - [ ] let rec a = b
+        - [ ] exp
+        - [ ] type a = b
+        - [ ] open
+        - [ ] module = struct ... end
+
