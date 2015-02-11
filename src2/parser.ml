@@ -73,6 +73,7 @@ let rec simple_exp i = i |> (
   (ident >>> (fun a -> Var a)) <|>
   (cident <~> rep1(str "." >> ident) >>> (fun (a,b) -> Var (String.concat "." (a::b) ))) <|>
   (str "begin" >> exp << str "end" >>> (fun e -> e)) <|>
+  ((str "!" >> simple_exp) >>> (fun a -> Get(a, Str "ref") )) <|>
   (str "(" >> exp << str ")" >>> (fun e -> e))
 )
 and field i = i |> (
@@ -192,7 +193,6 @@ and sub i = i |> (
     | Float(f) -> Float (-. f)
     | a -> Pre("-", a)
   )) <|>
-  ((str "!" >> app) >>> (fun a -> Get(a, Str "ref") )) <|>
   app
 )
 and app i = i |> (

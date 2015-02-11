@@ -71,6 +71,7 @@ object parse extends RegexParsers {
         EVar(a)
     } |
     "begin" ~> exp <~ "end" |
+    "!" ~> simple_exp ^^ { a => EBin(a,".", EVar("ref")) } |
     "(" ~> exp <~ ")"
 
   def exp: Parser[E] =
@@ -174,7 +175,6 @@ object parse extends RegexParsers {
   def sub: Parser[E] =
     "-." ~> app ^^ { a => EPre("-", a) } |
     "-" ~> app ^^ { a => EPre("-", a) } |
-    "!" ~> app ^^ { a => EBin(a,".", EVar("ref")) } |
     app
 
   def app: Parser[E] =

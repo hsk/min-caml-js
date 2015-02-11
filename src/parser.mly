@@ -74,6 +74,7 @@ simple_exp:
 | IDENT { Var($1) }
 | simple_exp DOT LPAREN exp RPAREN { Get($1, $4) }
 | simple_exp DOT IDENT { Get($1, Str $3) }
+| EXCLAM exp %prec DOT { Bin($2,".",Var "ref") }
 
 field:
 | IDENT EQUAL exp { ($1, $3) }
@@ -93,7 +94,6 @@ exp:
     | Float(f) -> Float(-.f)
     | e -> Pre("-", e)
 }
-| EXCLAM exp %prec prec_unary_minus { Bin($2,".",Var "ref") }
 | exp CONS exp { CApp("Cons", Tuple[$1; $3]) }
 | exp AT exp { App(Var "concat", [$1; $3]) }
 | exp AS IDENT { Bin($1, "as", Var $3) }
