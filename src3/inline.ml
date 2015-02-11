@@ -19,15 +19,13 @@ let rec size = function
   | _ -> 1
 *)
 let inline env (zs,e) (ys:e list) =
-      let zs = List.map(fun z -> (z,genid"z")) zs in
-      let e =
-        List.fold_right2
-          (fun (z,i) y e -> Let(i, y, e))
-          zs
-          ys e in
-      let env = zs in
+      let (zs,e) = List.fold_right2 (fun z y (zs, e) ->
+        match y with
+        | Var n -> ((z,n)::zs, e)
+        | _ -> let i = genid "z" in ((z,i)::zs, Let(i, y, e))
+      ) zs ys ([],e) in
 
-      Alpha.g env e
+      Alpha.g zs e
 
 let rec g (env:(string * (string list * e)) list ) = function
   | Match (_, _) | Tuple _| Array (_, _)| CApp (_, _) -> assert false
