@@ -47,6 +47,7 @@ let rec p_j fp = function
   | JUndefined -> Format.fprintf fp "JUndefined"
   | JBin(e1,op,e2) -> Format.fprintf fp "JBin(%a, %s, %a)" p_j e1 op p_j e2
   | JGet(e1,e2) -> Format.fprintf fp "JGet(%a, %a)" p_j e1 p_j e2
+  | JGet(e1,e2) -> Format.fprintf fp "JGet(%a, %a)" p_j e1 p_j e2
   | JPut(e1,e2,e3) -> Format.fprintf fp "JPut(%a, %a, %a)" p_j e1 p_j e2 p_j e3
   | JPre(op,e1) -> Format.fprintf fp "JPre(%s, %a)" op p_j e1
   | JApp(e,es) -> Format.fprintf fp "JApp(%a, %a)" p_j e p_js es

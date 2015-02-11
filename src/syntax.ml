@@ -24,7 +24,7 @@ type e =
 let counter = ref 0
 let genid s =
   incr counter;
-  Printf.sprintf "T%s_%d" s !counter
+  Printf.sprintf "T%s%d" s !counter
 
 let gentmp () =
   incr counter;

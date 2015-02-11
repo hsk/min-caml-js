@@ -25,7 +25,9 @@ let rec o_j fp = function
   | JRaise(s) -> Format.fprintf fp "(function(){throw \"%s\";}())" s
   | JUndefined -> Format.fprintf fp "undefined"
   | JBin(e1,op,e2) -> Format.fprintf fp "(%a %s %a)" o_j e1 op o_j e2
+  | JGet(e1,JStr e2) -> Format.fprintf fp "%a.%s" o_j e1 e2
   | JGet(e1,e2) -> Format.fprintf fp "%a[%a]" o_j e1 o_j e2
+  | JPut(e1,JStr e2,e3) -> Format.fprintf fp "%a.%s=%a" o_j e1 e2 o_j e3
   | JPut(e1,e2,e3) -> Format.fprintf fp "%a[%a]=%a" o_j e1 o_j e2 o_j e3
   | JPre(op,e1) -> Format.fprintf fp "(%s %a)" op o_j e1
   | JApp(e,[JUndefined]) -> Format.fprintf fp "%a()" o_j e
@@ -67,7 +69,6 @@ and o_s2 fp = function
   | e -> o_s fp e
 
 let to_js oc e =
-  Syntax.counter := 0;
   let a = Alpha.f e in
   let a = Inline.f e in
   (*Format.fprintf Format.std_formatter "//a=%a@." show_e a;*)

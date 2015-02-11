@@ -348,12 +348,6 @@ module Test = struct
       "match"; "with"; "when"; "begin"; "end"; "type"; "as"
     ]
 
-    let counter = ref 0
-
-    let genid s =
-      counter := !counter + 1;
-      "__mincaml__" ^ s ^ "_" ^ string_of_int !counter
-
     let ident =
       reg "[_a-z][_a-zA-Z0-9]*\\|\\([_A-Z][_a-zA-Z0-9]*\\.\\)+[_a-z][_a-zA-Z0-9]*" >?> (function
         | "_" -> genid ""
