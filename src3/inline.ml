@@ -1,5 +1,6 @@
 open Syntax
 
+(*
 let threshod = ref 1000
 
 let find (env:(string * (string list * e)) list ) i = List.assoc i env
@@ -16,7 +17,7 @@ let rec size = function
   | App(e,es) -> List.fold_left (+) (1 + size e) (List.map size es) 
   | Rec(ies) -> List.fold_left (+) 1 (List.map(fun(_,e)->size e) ies)
   | _ -> 1
-
+*)
 let inline env (zs,e) (ys:e list) =
       let zs = List.map(fun z -> (z,genid"z")) zs in
       let e =
@@ -44,6 +45,7 @@ let rec g (env:(string * (string list * e)) list ) = function
   | Put(e1,e2,e3) -> Put(g env e1, g env e2, g env e3)
   | Var(s) -> Var(s)
   | Fun(is,e) -> Fun(is, g env e)
+(*
 
   | Let(s,Fun(is,e1),e2) ->
     let env = if size e1 > !threshod then env else (s,(is,e1))::env in
@@ -51,7 +53,6 @@ let rec g (env:(string * (string list * e)) list ) = function
   | LetRec(s, Fun(is,e1), e2) ->
     let env = if size e1 > !threshod then env else (s,(is,e1))::env in
     LetRec(s, Fun(is, g env e1), g env e2)
-(*
   | App(Var s, es) when mem env s ->
     let f = find env s in
     Format.eprintf "inlining %s@." s;
