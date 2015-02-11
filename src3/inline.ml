@@ -27,7 +27,7 @@ let inline env (zs,e) (ys:e list) =
 
       Alpha.g zs e
 
-let rec g (env:(string * (string list * e)) list ) = function
+let rec g env = function
   | Match (_, _) | Tuple _| Array (_, _)| CApp (_, _) -> assert false
   | Int(i) -> Int(i)
   | Float(i) -> Float(i)

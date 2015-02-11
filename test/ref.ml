@@ -9,5 +9,5 @@ print_newline();
 let rec f a1 =
 	a := 1000;
 	a1
-in print_int(f !a);
+in print_int(-f !a);
 print_newline()

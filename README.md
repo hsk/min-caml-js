@@ -54,9 +54,10 @@ $ make do_test
     3. [parser.ml](src2/parser.ml) パーサ
     4. [to_if.ml](src/to_if.ml) match if 変換
     5. [alpha.ml](src3/alpha.ml) α変換
-    6. [javascript.ml](src3/javascript.ml) javascript変換
-    7. [emit.ml](src3/emit.ml) JavaScript出力
-    8. [main.ml](src2/main.ml) メイン
+    6. [inline.ml](src3/inline.ml) インライン展開
+    8. [javascript.ml](src3/javascript.ml) javascript変換
+    9. [emit.ml](src3/emit.ml) JavaScript出力
+    10. [main.ml](src2/main.ml) メイン
 
 ## TODO
 
