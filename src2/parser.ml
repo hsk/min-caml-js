@@ -18,7 +18,7 @@ let ident i = i |> (
   ((skip >> (range 'a' 'z' <|> nstr "_") <~> rep(range 'A' 'Z' <|>range 'a' 'z' <|> range '0' '9' <|> nstr "_") ) >>>(fun (a,b)->String.concat "" (a::b)))
   >>> (fun (a,b)->a^b))
   >?> (function
-    | "_" -> genid ""
+    | "_" -> ""
     | a when not(List.mem a keywords) -> a
     | _ -> failwith "error"
   )
@@ -84,7 +84,7 @@ and fields i = i |> (
 and exp i = i |> (
   (_let <~> rep(str ";" >> _let) >>> (fun (a, bs) ->
     List.fold_left (fun a b ->
-      Let(genid "", a, b)
+      Let("", a, b)
     ) a bs
   ))
 )

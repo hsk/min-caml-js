@@ -22,7 +22,7 @@ let inline env (zs,e) (ys:e list) =
       let (zs,e) = List.fold_right2 (fun z y (zs, e) ->
         match y with
         | Var n -> ((z,n)::zs, e)
-        | _ -> let i = genid "z" in ((z,i)::zs, Let(i, y, e))
+        | _ -> let i = gentmp() in ((z,i)::zs, Let(i, y, e))
       ) zs ys ([],e) in
 
       Alpha.g zs e

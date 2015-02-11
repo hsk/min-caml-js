@@ -136,7 +136,7 @@ exp:
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp { Put($1, $4, $7) }
 | simple_exp DOT IDENT LESS_MINUS exp { Put($1, Str $3, $5) }
 | simple_exp COLON_EQUAL exp { Put($1, Str "ref", $3) }
-| exp SEMICOLON exp { Let(Syntax.gentmp (), $1, $3) }
+| exp SEMICOLON exp { Let("", $1, $3) }
 | ARRAY_CREATE simple_exp simple_exp %prec prec_app { Array($2, $3) }
 | error
     { failwith
