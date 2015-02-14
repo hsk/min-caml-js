@@ -2,6 +2,7 @@ open Syntax
 
 let rec show_e e = match e with
   | Unit -> "undefined"
+  | Var "String.length" -> "String.length_"
   | Var s -> s
   | Str s -> Printf.sprintf "\"%s\"" s
   | Int s -> Printf.sprintf "%d" s
@@ -40,16 +41,5 @@ let rec show_e e = match e with
 
 let f oc ast =
   Format.eprintf "generating javascript...@.";
-  Printf.fprintf oc "function print_int(n) { console._stdout.write(\"\"+n);}\n";
-  Printf.fprintf oc "var print_string = print_int;\n";
-  Printf.fprintf oc "function makeArray(n,v) { var a = []; for(var i = 0; i < n; i++) a[i] = v; return a; }\n";
-  Printf.fprintf oc "function ref(n) { return {ref:n}; }\n";
-  Printf.fprintf oc "var abs_float = Math.abs;\n";
-  Printf.fprintf oc "var sqrt = Math.sqrt;\n";
-  Printf.fprintf oc "var sin = Math.sin;\n";
-  Printf.fprintf oc "var cos = Math.cos;\n";
-  Printf.fprintf oc "var int_of_float = Math.floor;\n";
-  Printf.fprintf oc "function truncate(a) { return a >= 0 ? Math.floor(a) : -Math.floor(-a); }\n";
-  Printf.fprintf oc "function float_of_int(a){return a+0.0;}\n";
-  Printf.fprintf oc "function print_newline(){console.log(\"\");}\n";
+  Printf.fprintf oc "%s\n" (Syntax.read_all "../libs/lib.js");
   Printf.fprintf oc "%s\n" (show_e (To_if.f ast))

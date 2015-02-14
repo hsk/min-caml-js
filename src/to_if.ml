@@ -14,7 +14,7 @@ let rec f e = match e with
   | Put(e1,e2,e3) -> Put(f e1, f e2, f e3) 
 
   | Tuple(es) -> let rec f1 i n = ("_"^string_of_int i, n) in f (Rec(List.mapi f1 es))
-  | Array (e1, e2) -> App(Var "makeArray", [f e1; f e2]) 
+  | Array (e1, e2) -> App(Var "Array.create", [f e1; f e2]) 
   | CApp(e1,e2) -> Rec([("tag", Str e1); ("data",f e2)] )
   | Match(e1,ss) ->
     let rec mat e me =

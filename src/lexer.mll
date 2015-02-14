@@ -58,7 +58,6 @@ rule token = parse
 | ':' { COLON }
 | ',' { COMMA }
 | '_' { IDENT(Syntax.gentmp ()) }
-| "Array.create" { ARRAY_CREATE }
 | '.' { DOT }
 | "<-" { LESS_MINUS }
 | ":=" { COLON_EQUAL }
@@ -66,6 +65,8 @@ rule token = parse
 | ';' { SEMICOLON }
 | eof { EOF }
 | '"' ([^ '"' '\\'] | '\\' _)* '"' { let s = Lexing.lexeme lexbuf in STRING(String.sub s 1 ((String.length s)-2))}
+
+| upper (digit|lower|upper|'_')* '.' lower (digit|lower|upper|'_')* { IDENT(Lexing.lexeme lexbuf) }
 | upper (digit|lower|upper|'_')* { CIDENT(Lexing.lexeme lexbuf) }
 | lower (digit|lower|upper|'_')* { IDENT(Lexing.lexeme lexbuf) }
 | _ {

@@ -19,6 +19,7 @@ let rec o_is fp is =
 let rec o_j fp = function
   | JInt(i) -> Format.fprintf fp "%d" i
   | JFloat(i) -> Format.fprintf fp "%f" i
+  | JVar("String.length") -> Format.fprintf fp "String.length_"
   | JVar(s) -> Format.fprintf fp "%s" s
   | JStr(s) -> Format.fprintf fp "\"%s\"" s
   | JBool(i) -> Format.fprintf fp "%b" i
@@ -77,17 +78,8 @@ let to_js oc e =
   Format.fprintf oc "(function(){@.%a@.}());@." o_s b
 
 let f oc ast =
+
+
   Format.eprintf "generating javascript...@.";
-  Printf.fprintf oc "function print_int(n) { console._stdout.write(\"\"+n);}\n";
-  Printf.fprintf oc "var print_string = print_int;\n";
-  Printf.fprintf oc "function makeArray(n,v) { var a = []; for(var i = 0; i < n; i++) a[i] = v; return a; }\n";
-  Printf.fprintf oc "function ref(n) { return {ref:n}; }\n";
-  Printf.fprintf oc "var abs_float = Math.abs;\n";
-  Printf.fprintf oc "var sqrt = Math.sqrt;\n";
-  Printf.fprintf oc "var sin = Math.sin;\n";
-  Printf.fprintf oc "var cos = Math.cos;\n";
-  Printf.fprintf oc "var int_of_float = Math.floor;\n";
-  Printf.fprintf oc "function truncate(a) { return a >= 0 ? Math.floor(a) : -Math.floor(-a); }\n";
-  Printf.fprintf oc "function float_of_int(a){return a+0.0;}\n";
-  Printf.fprintf oc "function print_newline(){console.log(\"\");}\n";
+  Printf.fprintf oc "%s\n" (Syntax.read_all "../libs/lib.js");
   Format.fprintf (Format.formatter_of_out_channel oc) "%a\n" to_js (To_if.f ast)

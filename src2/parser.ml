@@ -197,7 +197,6 @@ and sub i = i |> (
 )
 and app i = i |> (
   (dot <~> rep1(dot) >>> (function
-    | (Var "Array.create",[a;b]) -> Array(a, b)
     | (a,b) -> App(a, b)
   )) <|>
   (cident <~> exp >>> (fun (a,b) -> CApp(a, b) )) <|>
