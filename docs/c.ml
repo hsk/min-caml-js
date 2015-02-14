@@ -1,3 +1,7 @@
+(*
+todo: これは、たぶん、javascriptに変換する話のサンプルコードだけど関連が謎
+
+*)
 type e =
   | EInt of int
   | EVar of string

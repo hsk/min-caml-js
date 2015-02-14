@@ -1,6 +1,8 @@
 # module
 
-モジュールをJavaScriptで再現する事を考えます。
+OCamlそのもののモジュールについては、 [module](module) 及び、[module2](module2) を参照してください。
+
+ここでは、モジュールをJavaScriptで再現する事を考えます。
 
 ```ocaml
 module A = struct

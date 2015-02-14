@@ -1,3 +1,6 @@
+(*
+mlからjavascriptへの変換のサンプルです。
+*)
 type e =
   | EInt of int
   | EVar of string
