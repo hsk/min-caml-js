@@ -317,6 +317,7 @@ object cnv {
   def show_e(e: E): String = {
     e match {
       case EUnit => "undefined"
+      case EVar("String.length") => "String.length_"
       case EVar(s) => s
       case EStr(s) => "\"%s\"".format(s)
       case EInt(s) => "%d".format(s)
@@ -326,8 +327,6 @@ object cnv {
         "function(%s){return %s;}".format(ss.mkString(","), show_e(e))
       case ERec(ses) =>
         "{%s}".format(ses.map { case (s, e) => s + ":" + show_e(e) }.mkString(","))
-      case EApp(EVar("Array.create"), List(e1, e2)) =>
-        "makeArray(%s,%s)".format(show_e(e1), show_e(e2))
       case EApp(e1, e2) =>
         "%s(%s)".format(show_e(e1), e2.map(show_e).mkString(","))
       case EPre(op, e1) =>
@@ -355,18 +354,7 @@ object cnv {
   def f(oc: PrintStream, ast: E) {
 
     println("generating javascript...")
-    oc.printf("function print_int(n) { console._stdout.write(\"\"+n);}\n")
-    oc.printf("var print_string = print_int;\n");
-    oc.printf("function makeArray(n,v) { var a = []; for(var i = 0; i < n; i++) a[i] = v; return a; }\n")
-    oc.printf("function ref(n) { return {ref:n}; }\n")
-    oc.printf("var abs_float = Math.abs;\n")
-    oc.printf("var sqrt = Math.sqrt;\n")
-    oc.printf("var sin = Math.sin;\n")
-    oc.printf("var cos = Math.cos;\n")
-    oc.printf("var int_of_float = Math.floor;\n")
-    oc.printf("function truncate(a) { return a >= 0 ? Math.floor(a) : -Math.floor(-a); }\n")
-    oc.printf("function float_of_int(a){return a+0.0;}\n")
-    oc.printf("function print_newline(){console.log(\"\");}\n")
+    oc.printf("%s\n", exec.readAll("../libs/lib.js"));
     oc.printf("%s\n", show_e(to_if(ast)))
   }
 
