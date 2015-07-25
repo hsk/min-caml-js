@@ -1,5 +1,9 @@
 from beauty import *
 
+print(p("(", n(rep("a")), ")")("()"))
+
+print(parse("()"))
+
 print(parse("1"))
 
 

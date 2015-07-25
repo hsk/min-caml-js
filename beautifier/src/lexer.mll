@@ -14,38 +14,38 @@ rule token = parse
 | ')' { RPAREN }
 | '[' { LBRACK }
 | ']' { RBRACK }
-| "::" { CONS }
-| '@' { AT }
-| "as" { AS }
+| "::" { ID("::") }
+| '@' { ID "@" }
+| "as" { ID("as") }
 | "begin" { BEGIN }
 | "end" { END }
 | "match" { MATCH }
 | "with" { WITH }
 | "when" { WHEN }
-| "->" { ARROW }
+| "->" { ID "->" }
 | "|" { BAR }
 | "type" { TYPE }
 | "of" { OF }
 | ";;" { SEMISEMI }
-| "true" { BOOL("true") }
-| "false" { BOOL("false") }
-| "not" { NOT }
-| digit+ { INT(Lexing.lexeme lexbuf) }
+| "true" { ID "true" }
+| "false" { ID "false" }
+| "not" { ID "not" }
+| digit+ { ID(Lexing.lexeme lexbuf) }
 | digit+ ('.' digit*)? (['e' 'E'] ['+' '-']? digit+)?
-    { FLOAT(Lexing.lexeme lexbuf) }
-| '-' { MINUS }
-| '+' { PLUS }
-| '*' { AST }
-| "-." { MINUS_DOT }
-| "+." { PLUS_DOT }
-| "*." { AST_DOT }
-| "/." { SLASH_DOT }
-| '=' { EQUAL }
-| "<>" { LESS_GREATER }
-| "<=" { LESS_EQUAL }
-| ">=" { GREATER_EQUAL }
-| '<' { LESS }
-| '>' { GREATER }
+    { ID(Lexing.lexeme lexbuf) }
+| '-' { ID "-" }
+| '+' { ID "+" }
+| '*' { ID "*" }
+| "-." { ID "-." }
+| "+." { ID "+." }
+| "*." { ID "*." }
+| "/." { ID "/." }
+| '=' { ID "=" }
+| "<>" { ID "<>" }
+| "<=" { ID "<=" }
+| ">=" { ID ">=" }
+| '<' { ID "<" }
+| '>' { ID ">" }
 | "if" { IF }
 | "then" { THEN }
 | "else" { ELSE }
@@ -56,20 +56,20 @@ rule token = parse
 | "open" { OPEN }
 | '{' { LBRACE }
 | '}' { RBRACE }
-| ':' { COLON }
-| ',' { COMMA }
-| '_' { IDENT("_") }
+| ':' { ID ":" }
+| ',' { ID "," }
+| '_' { ID "_" }
 | '.' { DOT }
-| "<-" { LESS_MINUS }
-| ":=" { COLON_EQUAL }
+| "<-" { ID "<-" }
+| ":=" { ID ":=" }
 | '!' { EXCLAM }
 | ';' { SEMICOLON }
 | eof { EOF }
-| '"' ([^ '"' '\\'] | '\\' _)* '"' { let s = Lexing.lexeme lexbuf in STRING(String.sub s 1 ((String.length s)-2))}
+| '"' ([^ '"' '\\'] | '\\' _)* '"' { ID(Lexing.lexeme lexbuf)}
 
-| upper (digit|lower|upper|'_')* '.' lower (digit|lower|upper|'_')* { IDENT(Lexing.lexeme lexbuf) }
-| upper (digit|lower|upper|'_')* { CIDENT(Lexing.lexeme lexbuf) }
-| lower (digit|lower|upper|'_')* { IDENT(Lexing.lexeme lexbuf) }
+| upper (digit|lower|upper|'_')* '.' lower (digit|lower|upper|'_')* { ID(Lexing.lexeme lexbuf) }
+| upper (digit|lower|upper|'_')* { ID(Lexing.lexeme lexbuf) }
+| lower (digit|lower|upper|'_')* { ID(Lexing.lexeme lexbuf) }
 | _ {
   failwith
     (Printf.sprintf "unknown token %s near characters %d-%d"
