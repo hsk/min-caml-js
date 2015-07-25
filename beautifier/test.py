@@ -1,6 +1,6 @@
 from beauty import *
 
-print(p("(", n(rep("a")), ")")("()"))
+#print(p("(", n(rep("a")), ")")("()"))
 
 print(parse("()"))
 
