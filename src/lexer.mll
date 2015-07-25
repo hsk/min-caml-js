@@ -53,6 +53,7 @@ rule token = parse
 | "in" { IN }
 | "rec" { REC }
 | "mutable" { MUTABLE }
+| "open" { OPEN }
 | '{' { LBRACE }
 | '}' { RBRACE }
 | ':' { COLON }

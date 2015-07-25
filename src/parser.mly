@@ -40,6 +40,7 @@ open Syntax
 %token LBRACK RBRACK CONS AT AS
 %token MUTABLE LBRACE RBRACE COLON
 %token EXCLAM COLON_EQUAL
+%token OPEN
 %token EOF
 
 %right prec_let
@@ -122,6 +123,9 @@ exp:
     | (a,b,c) -> LetRec(a, Fun(b, c), $5)
 }
 
+| OPEN CIDENT exp
+    %prec prec_capp
+    { Open($2, $3) }
 | CIDENT
     %prec prec_capp
     { CApp($1, Unit) }

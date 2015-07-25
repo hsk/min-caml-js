@@ -107,3 +107,5 @@ $ make do_test
         - [ ] ネストしたletの簡約 assoc
         - [ ] 定数畳み込み constfold
         - [ ] 不要定義削除 elim
+    - [ ] ユーザー定義オペレーター
+    

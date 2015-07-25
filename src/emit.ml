@@ -1,5 +1,4 @@
 open Syntax
-
 let rec show_e e = match e with
   | Unit -> "undefined"
   | Var "String.length" -> "String.length_"
@@ -37,9 +36,33 @@ let rec show_e e = match e with
   | Put(e1,e2, e3) ->
     Printf.sprintf "%s[%s] = %s" (show_e e1) (show_e e2) (show_e e3)
   | Raise(s) -> Printf.sprintf "(function(){throw \"%s\";}())" s
-  | Array(_, _) | Match(_,_) | Tuple(_) | CApp(_, _) -> assert false
+  | Open(s,e) -> Printf.sprintf "(function(){with(%s){return %s;}}())" s (show_e e)
+  | Array(_, _)  | Tuple(_) | CApp(_, _) -> assert false
+  | Match(e1,es) ->
+    let es = List.map(function
+      | (Var "_",_,e2) ->
+        "default: return " ^ (show_e e2) ^ ";"
+      | (e1,_,e2) ->
+        "case " ^ (show_e e1) ^ ": return " ^ (show_e e2) ^ ";"
+    ) es in
+    Printf.sprintf "(function(){switch(%s) {%s}}())"
+      (show_e e1) (String.concat "" es)
 
-let f oc ast =
+
+let rec findopen = function
+  | Unit | Raise _ | Int _ | Var _ | Str _ | Float _ | Bool _ -> []
+  | Fun(_, e1) | Pre(_,e1) | CApp(_,e1) ->
+    findopen e1
+  | App(e,es) -> (findopen e) @ List.flatten (List.map findopen es)
+  | Rec(ses) -> List.flatten(List.map(fun(s,e)->findopen e) ses)
+  | Array(e1,e2) | Bin(e1,_,e2) | Let(_,e1,e2) | LetRec(_,e1,e2) | Get(e1,e2) ->
+    (findopen e1) @ (findopen e2)
+  | Put(e1,e2, e3) | If(e1,e2,e3) ->
+    (findopen e1) @ (findopen e2) @ (findopen e3)
+  | Tuple es -> List.flatten(List.map findopen es)
+  | Open(s,e) -> s :: (findopen e)
+
+let f oc ast =  
   Format.eprintf "generating javascript...@.";
   Printf.fprintf oc "%s\n" (Syntax.read_all "../libs/lib.js");
   Printf.fprintf oc "%s\n" (show_e (To_if.f ast))

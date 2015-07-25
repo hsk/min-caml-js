@@ -20,6 +20,7 @@ type e =
   | CApp of string * e
   | Tuple of e list
   | Match of e * (e * e option * e) list
+  | Open of string * e
 
 let counter = ref 0
 let genid s =

@@ -28,7 +28,7 @@ let inline env (zs,e) (ys:e list) =
       Alpha.g zs e
 
 let rec g env = function
-  | Match (_, _) | Tuple _| Array (_, _)| CApp (_, _) -> assert false
+  | Tuple _| Array (_, _)| CApp (_, _) -> assert false
   | Int(i) -> Int(i)
   | Float(i) -> Float(i)
   | Str(i) -> Str(i)
@@ -39,12 +39,12 @@ let rec g env = function
   | Pre(op,e1) -> Pre(op, g env e1)
   | If(e1,e2,e3) -> If(g env e1, g env e2, g env e3)
   | Rec(ies) -> Rec(List.map(fun(i,e)->(i,g env e)) ies)
+  | Match(e,eoees) -> Match(g env e,List.map(fun(e1,_,e2)->(g env e1,None,g env e2)) eoees)
   | Get(e1,e2) -> Get(g env e1, g env e2)
   | Put(e1,e2,e3) -> Put(g env e1, g env e2, g env e3)
   | Var(s) -> Var(s)
   | Fun(is,e) -> Fun(is, g env e)
-(*
-
+  (*
   | Let(s,Fun(is,e1),e2) ->
     let env = if size e1 > !threshod then env else (s,(is,e1))::env in
     Let(s, Fun(is, g env e1), g env e2)
@@ -54,7 +54,8 @@ let rec g env = function
   | App(Var s, es) when mem env s ->
     let f = find env s in
     Format.eprintf "inlining %s@." s;
-    inline env f es*)
+    inline env f es
+  *)
   | App(Fun(is,e1), es) ->
     Format.eprintf "inlining anonymous@.";
     let f = (is, g env e1) in

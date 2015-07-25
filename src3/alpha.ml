@@ -29,6 +29,8 @@ let rec g env = function
     Rec(List.map(fun(i,e)->(i,g env e)) ies)
   | Get(e1,e2) -> Get(g env e1, g env e2)
   | Put(e1,e2,e3) -> Put(g env e1, g env e2, g env e3)
+  | Match(e1,eoees) ->
+    Match(g env e1,List.map(fun (e,_,e3)-> (g env e, None, g env e3)) eoees)
   | Match (_, _) | Tuple _| Array (_, _)| CApp (_, _) -> assert false
 
 let f e = g [] e

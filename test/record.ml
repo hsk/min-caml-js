@@ -8,7 +8,11 @@ print_int(a.b);print_newline();
 let {a=k} = a in
 print_int(k);print_newline();
 begin match a with
-| {b=b} -> print_int(b); print_newline()
+| {b=b} ->
+	print_int(b);
+	print_newline()
+| _ ->
+	()
 end;
 a.b <- 40;
 print_int(a.b);

@@ -136,19 +136,29 @@ let rec cnve tl = function
     ) ies (SNil,[]) in
     ss,JRec(js)
   | If(e1,e2,e3) ->
+    let s1,j1 = cnve RExp e1 in
+    let s2,j2 = cnve tl e2 in
+    let s3,j3 = cnve tl e3 in
     begin match tl with
     | RVar i ->
-      let s1,j1 = cnve RExp e1 in
-      let s2,j2 = cnve tl e2 in
-      let s3,j3 = cnve tl e3 in
       s1 @@ SIf(j1, s2 @@ SAssign(i,j2), s3 @@ SAssign(i,j3)), JVar(i)
     | _ ->
-      let s1,j1 = cnve RExp e1 in
-      let s2,j2 = cnve tl e2 in
-      let s3,j3 = cnve tl e3 in
       let i = gentmp () in
       SDef(i) @@ s1 @@ SIf(j1, s2 @@ SAssign(i,j2), s3 @@ SAssign(i,j3)), JVar(i)
     end
+  | Match(e1,eoees) ->
+    let s1,j1 = cnve RExp e1 in
+    let rc = SSwitch(j1, List.map(function
+      | (b,_,e2)-> (let s,j = enve tl e2 , let s2,j2 = cnve tl e2 in s2 @@ SAssign(i,j2))
+    )eooes) in
+    begin match tl with
+    | RVar i ->
+      s1 @@ ex, JVar(i)
+    | _ ->
+      let i = gentmp () in
+      SDef(i) @@ rc, JVar(i)
+    end
+
   | e -> Format.fprintf Format.std_formatter "error %a@." show_e e; assert false
 
 and cnv tl = function
