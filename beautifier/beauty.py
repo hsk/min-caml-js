@@ -321,8 +321,8 @@ def cnv(e):
     return "".join(e2)
 
 def parse(s):
-    s = re.sub("^\s+", "", s)
-
+    s = re.compile("^[\\s]+", re.M).sub("", s)
+    #s = re.sub("^\s+", "", s)
 
     keywords = reg('''^(let|in|if|else|then|rec|begin|end|match|with|type)\\b''')
 

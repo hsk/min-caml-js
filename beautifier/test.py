@@ -97,15 +97,16 @@ print(parse(
 
 print(parse(
     '''
-        open a;;
-          let b =
-      try
+    try
     a
-      with
-     e
-     in
-     a
+    with
+    e
     '''))
 
-
-print(seq(opt("|"), "a")("a"))
+print(parse(
+    '''
+    let a =
+        b
+    in
+    a
+    '''))
