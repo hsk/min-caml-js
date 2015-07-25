@@ -373,7 +373,7 @@ def parse(s):
         | p("[", n(~exp), "]") \
         | p("if", n(exp), "then", n(exp), "else", exp) \
         | p("let", n(~p("rec"), exp), "in", exp) \
-        | p((st("match") | st("try")), n(exp), "with", ~p("|"), n(exp), -p("|", n(exp))) \
+        | p(p("match") | p("try"), n(exp), "with", ~p("|"), n(exp), -p("|", n(exp))) \
         | p("function", ~p("|"), n(exp), -p("|", n(exp))) \
         | p("type", n(id, "=", ~p("|"), n(exp), -p("|", n(exp))), ~p(";;")) \
         | p("type", n(id, "=", exp), ~p(";;")) \

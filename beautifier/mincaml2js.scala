@@ -60,13 +60,8 @@ class PrityPrintParser extends RegexParsers {
     }
   }
 
-  def p[A](p:Parser[A]):Parser[List[Any]] = p ^^ {a => List(a,NestP) }
-  def m[A](p:Parser[A]):Parser[List[Any]] = p ^^ {a => List(NestM,a) }
-
-  def nest(p:(Parser[Any],Parser[Any],Parser[Any])):Parser[List[Any]] =
-    p._1~p._2~p._3 ^^ {case a~b~c => List(a,NestP,b,NestM,c) }
   def n(p:Parser[Any]):Parser[List[Any]] =
-    p ^^ {case a~b~c => List(a,NestP,b,NestM,c)}
+    p ^^ {List(NestP,_,NestM)}
     
 
   def flat(a:Any):List[Any] = {
@@ -128,23 +123,23 @@ object parse extends PrityPrintParser {
 
   override protected val whiteSpace = """(?s)(\s|\(\*.*\*\))+""".r
 
-  def keywords  = { """(let|in|if|else|then|rec|begin|end|match|with)\b""".r }
-  def id        = { not(keywords) ~> """[_a-zA-Z0-9]+""".r }.
-                | { """[+\-*/.<>=:@]+""".r }.
-                | { """[,!]""".r }.
-                | { """("(\\.|[^"])*")""".r }
+  def keywords  = ( """(let|in|if|else|then|rec|begin|end|match|with|try)\b""".r )
+  def id        = ( not(keywords) ~> """[_a-zA-Z0-9]+""".r ).
+                | ( """[+\-*/.<>=:@]+""".r ).
+                | ( """[,!]""".r ).
+                | ( """("(\\.|[^"])*")""".r )
   def exp:Parser[Any]
-                = { exps ~ rep(";" ~ exps) }
-  def exps      = { rep1(exp1) }
-  val exp1      = ( n{"begin" ~ exp ~ "end"} ).
-                | ( "match" ~ n(""~exp~"") ~ "with" ~ opt("|") ~ n{""~exp~""} ~ rep("|" ~ n{""~exp~""})  ).
-                | ( n{"(" ~ opt(exp) ~ ")"} ).
-                | ( n{"{" ~ opt(exp) ~ "}"} ).
-                | ( n{"[" ~ opt(exp) ~ "]"} ).
-                | ( n{"let" ~ (opt("rec") ~ exp) ~ "in"} ~ exp ).
-                | ( n{"type" ~ (id ~ "=" ~ exp) ~ ";;"} ~ exp ).
-                | ( n{"type" ~ {id ~ "=" ~ n(opt("|") ~ exp ~ "") ~ rep(n("|" ~ exp ~ ""))} ~ ";;"} ).
-                | ( n{"if" ~ exp ~ ""} ~ n{"then" ~ exp ~ "else"} ~ exp ).
+                = ( exps ~ rep(";" ~ exps) )
+  def exps      = ( rep1(exp1) )
+  val exp1      = ( "begin" ~ n(exp) ~ "end" ).
+                | ( ("match" | "try") ~ n(exp) ~ "with" ~ opt("|") ~ n{exp} ~ rep("|" ~ n{exp}) ).
+                | ( "(" ~ n{opt(exp)} ~ ")" ).
+                | ( "{" ~ n{opt(exp)} ~ "}" ).
+                | ( "[" ~ n{opt(exp)} ~ "]" ).
+                | ( "let" ~ n(opt("rec") ~ exp) ~ "in" ~ exp ).
+                | ( "type" ~ n(id ~ "=" ~ exp) ~ ";;" ~ exp ).
+                | ( "type" ~ n{id ~ "=" ~ n(opt("|") ~ exp) ~ rep("|" ~ n(exp))} ~ ";;" ).
+                | ( "if" ~ n{exp} ~ "then" ~ n{exp} ~ "else" ~ exp ).
                 | ( id )
 
   def apply(str: String):String = apply(exp,str)

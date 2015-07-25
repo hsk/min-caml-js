@@ -1,5 +1,4 @@
-
-function parse(i){
+exports.parse = function(i){
   function startsWith(i, param) {
     var ilen = i.length;
     var len = param.length;
@@ -11,7 +10,7 @@ function parse(i){
     if(i.length > 0) return [i.substring(0,1), i.substring(1)];
     else return null;
   }
-  var str = function(s) { return skip.seq(nstr(s));};
+  var str = function(s) { return p(skip, nstr(s));};
 
 
   Function.prototype.or=function(that) {
@@ -22,7 +21,7 @@ function parse(i){
     };
   };
 
-  function seq() {
+  function p() {
     var args = arguments;
     for(var i = 0; i < args.length;i++) {
       if(typeof(args[i])=="string") args[i]=str(args[i]);
@@ -39,19 +38,10 @@ function parse(i){
     };
   }
 
-  Function.prototype.seq=function (that) {
-    var thiz = this;
-    return function(i) {
-      var r1 = thiz(i); if(r1 === null) return null;
-      var r2 = that(r1[1]); if(r2 === null) return null;
-      return [[r1[0], r2[0]], r2[1]];
-    };
-  };
-
   Function.prototype.next=function(that) {
     var thiz = this;
     return function(i) {
-      var r = thiz.seq(that)(i); if(r === null) return r;
+      var r = p(thiz,that)(i); if(r === null) return r;
       return [r[0][1], r[1]];
     };
   };
@@ -59,10 +49,10 @@ function parse(i){
   Function.prototype.prev=function(that) {
     var thiz = this;
     return function(i) {
-      var r = thiz.seq(that)(i); if(r === null) return r;
+      var r = p(thiz,that)(i); if(r === null) return r;
       return [r[0][0], r[1]];
     };
-  }
+  };
 
   Function.prototype.action=function(f) {
     var thiz = this;
@@ -127,22 +117,22 @@ function parse(i){
   function nreg(param) {
     return function(i) {
       var m = i.match(param);
-      if(m === null) return null;
+      if (m === null) return null;
       return [m[0],i.substring(m[0].length)];
     };
   }
 
   var skip = nreg(/^(\s|\(\*[\s\S]*\*\))*/);
 
-  var reg = function(s) { return skip.seq(nreg(s));};
+  var reg = function(s) { return p(skip, nreg(s));};
 
   function NestP(){this.p=true;}
   function NestM(){this.m=true;}
 
 
-  function n(a,b,c) {
-    return seq(a,b,c).action(function(a){
-      return [a[0],new NestP(),a[1],new NestM(),a[2]];
+  function n() {
+    return p.apply(this,arguments).action(function(a){
+      return [new NestP(),a,new NestM()];
     });
   }
 
@@ -209,7 +199,7 @@ function parse(i){
     }
 
     e2 = [];
-    for(var i in e3) {
+    for (var i in e3) {
       var s = e3[i];
 
       if(s instanceof NestP) {nest++; continue; }
@@ -228,77 +218,25 @@ function parse(i){
   var keywords  = reg(/^(let|in|if|else|then|rec|begin|end|match|with)\b/);
 
 
-  var id        = (notp(keywords).next( reg(/^[_a-zA-Z0-9]+/)))
-                .or( reg(/^[+\-*\/.<>=:@]+/) )
-                .or( reg(/^[,!]/) )
-                .or( reg(/^("(\\.|[^"])*")/) );
-  var exp1      = n("begin", exp, "end")
-                .or(seq("match", n("",exp,""), "with", opt("|"), n("",exp,""), rep(seq("|", n("",exp,""))) )  )
-                .or( n("(", opt(exp), ")") )
-                .or( n("{", opt(exp), "}") )
-                .or( n("[", opt(exp), "]") )
-                .or( seq(n("let", seq(opt("rec"), exp), "in"), exp) )
-                .or( seq(n("type", seq(id, "=", exp), ";;"), exp) )
-                .or( n("type", seq(id, "=", n(opt("|"), exp, ""), rep(n("|", exp, ""))), ";;") )
-                .or( seq(n("if", exp, ""), n("then", exp, "else"), exp) )
+  var id        = (notp(keywords).next(reg(/^[_a-zA-Z0-9]+/)))
+                .or(reg(/^[+\-*\/.<>=:@]+/))
+                .or(reg(/^[,!]/))
+                .or(reg(/^("(\\.|[^"])*")/));
+  var exp1      = p("begin", n(exp), "end")
+                .or(p(p("match").or(p("try")), n(exp), "with", opt("|"), n(exp), rep(p("|", n(exp)))))
+                .or(p("(", n(opt(exp)), ")"))
+                .or(p("{", n(opt(exp)), "}"))
+                .or(p("[", n(opt(exp)), "]"))
+                .or(p("let", n(p(opt("rec"), exp)), "in", exp))
+                .or(p("type", n(p(id, "=", exp)), ";;", exp))
+                .or(p("type", n(id, "=", opt("|"), n(exp), rep(p("|", n(exp)))), ";;"))
+                .or(p("if", n(exp), "then", n(exp), "else", exp))
                 .or(id);
   var exps      = rep1(exp1);
   function exp(i) {
-    return exps.seq(rep(str(";").next(exps)))(i);
+    return p(exps, rep(p(";", exps)))(i);
   }
   var e = exp(i);
     //console.log(JSON.stringify(e));
   return cnv(flat(e));
-}
-
-
-console.log(parse("begin\n1 + 2\nend"));
-
-
-console.log(parse(
-  "let a = 1 in\n"+
-  "if a then b else c\n"+
-  ""));
-
-console.log(parse(
-  "let a = 1 in\n"+
-  "if a\n"+
-  "then b\n"+
-  "else c\n"+
-  ""));
-
-console.log(parse(
-  "let a = 1 in\n"+
-  "if a\n"+
-  "then\n"+
-  "b\n"+
-  "else\n"+
-  "c\n"+
-  ""));
-
-console.log(parse(
-  "let a =\n"+
-  "let a = 1 in\n"+
-  "if a > 10 \n"+
-  "then\n"+
-  "b\n"+
-  "else\n"+
-  "c\n"+
-  "in\n"+
-  "a + b\n"+
-  ""));
-
-console.log(parse(
-  "if a > 10 then\n"+
-  "b\n"+
-  "else if a > 20 then\n"+
-  "c\n"+
-  "else\n"+
-  "d\n"+
-  ""));
-
-console.log(parse(
-  "if a > 10 then b else\n"+
-  "if a > 20 then c else\n"+
-  "d\n"+
-  ""));
+};
