@@ -174,7 +174,7 @@ def flat(a, rc):
 
 def cnv(e):
     e = flat(e, [])
-    e3 = []
+    e2 = []
     i = 0
     while(i < len(e)):
         s = [e[i]]
@@ -183,62 +183,86 @@ def cnv(e):
             while(i < len(e)):
                 s2 = e[i]
                 if s2 is NestM:
-                    e3.append(s2)
+                    e2.append(s2)
                 else:
                     s.append(s2)
                     if whiteSpace.search(s2) is None:
                         break
                 i += 1
         i += 1
-        e3.extend(s)
+        e2.extend(s)
 
     nest = 0
-    e4 = []
-    for s in e3:
+    e3 = []
+    for s in e2:
         if isinstance(s, Nest):
             nest += s.n
         else:
             m = reg2.search(s)
             if m is not None:
                 s = reg1.sub("\n"+("  " * nest), m.group(0))
-            e4.append(s)
-    return "".join(e4)
+            e3.append(s)
+    return "".join(e3)
 
-keywords = reg(r"^(let|in|if|else|then|rec|begin|end|match|with|type)\b")
+keywords = reg(r"^(let|in|if|else|then|rec|begin|end|match|try|with|type|open|struct|module|and|while|do|done)\b")
+
+semi = notp(";;") >> p(";")
+
+exp = p(lambda i: p(exp3, rep[semi, exp3])(i))
+exps = p(exp, opt(semi))
 
 id = orp(
     notp(keywords) >> reg(r"^[_a-zA-Z0-9]+"),
-    reg(r'^[+\-*\/.<>:@=][+\-*\/.<>:@=]*'),
+    reg(r'^[+\-*\/.<>:@=^]+') ^ (lambda i: i if re.search(r'^(=|->)$', i[1]) is None else None),
     reg(r'^[,!]'),
     reg(r'^("(\\.|[^"])*")')
 )
 
-exp = p(lambda i: p(exps, rep[notp(";;") >> p(";"), exps])(i))
-
-exp1 = orp(
-    orhash(
-        reg(r"^[_a-zA-Z0-9]+|^[(\[{]"),
-        {
-            "begin": p(-exp, "end"),
-            "(": p(-opt(exp), ")"),
-            "{": p(-opt(exp), "}"),
-            "[": p(-opt(exp), "]"),
-            "if": p(-exp, "then", -exp, "else", exp),
-            "let": p(-p[opt("rec"), exp], "in", exp),
-            "match": p(-exp, "with", opt("|"), -exp, rep["|", -exp]),
-            "try": p(-exp, "with", opt("|"), -exp, rep["|", -exp]),
-            "function": p(opt("|"), -exp, rep("|", -exp)),
-            "type": p(-p[id, "=", opt("|"), exp, rep("|", exp)], opt(";;")),
-            "open": p(-p[id, rep(".", id)], opt(";;"))
-        }
-    ),
-    id
+sexp = orp(
+    id,
+    p("begin", -exp, "end"),
+    p("(", -opt(exp), ")"),
+    p("{", -opt(exp), "}"),
+    p("[", -opt(exp), "]")
 )
 
-exps = rep1(exp1)
+app = rep1(sexp)
+
+exp1 = orp(
+    p("let", opt("rec"), app, "=", -p[exps], "in", exp),
+    p("if", -exps, "then", -exps, "else", exp),
+    p("match", -exps, "with", opt("|"), -exps, rep["|", -exps]),
+    p("try", -exps, "with", opt("|"), -exps, rep["|", -exps]),
+    p("function", opt("|"), -exps, rep("|", -exps)),
+    p("while", -exps, "do", -exps, "done"),
+    app
+)
+
+exp2 = p(exp1, opt("=", exp1))
+exp3 = p(exp2, opt("->", exp))
+
+prog = p(lambda i: rep(toplevel, opt(";;"))(i))
+
+struct = p(lambda i: orp(
+    p("struct", -prog, "end"),
+    -struct_exp
+)(i))
+
+struct_exp = rep1(orp(
+    id,
+    p("(", -opt(struct), ")"),
+))
+
+toplevel = orp(
+    p("type", -p[id, "=", opt("|"), exp, rep("|", exp)]),
+    p("open", -p[id, rep(".", id)]),
+    p(exp, opt(semi)),
+    p("let", opt("rec"), -p[app], "=", -p[exp], opt(rep["and", -p[app], "=", -p[exp]])),
+    p("module", -p[app], "=", struct)
+)
 
 regparse = re.compile(r"^[\s]+", re.M)
 
 
 def parse(s):
-    return cnv(exp(regparse.sub("", s)))
+    return cnv(prog(regparse.sub("", s)))

@@ -29,14 +29,10 @@ console.log(parse(
 
 console.log(parse(
   "let a =\n"+
-  "let a = 1 in\n"+
-  "if a > 10 \n"+
-  "then\n"+
-  "b\n"+
-  "else\n"+
-  "c\n"+
+    "let a = 1 in\n"+
+    "a\n"+
   "in\n"+
-  "a + b\n"+
+  "a\n"+
   ""));
 
 console.log(parse(

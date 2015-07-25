@@ -34,17 +34,12 @@ print(parse(
     "c\n" +
     ""))
 
-print(parse(
-    "let a =\n" +
-    "let a = 1 in\n" +
-    "if a > 10 \n" +
-    "then\n" +
-    "b\n" +
-    "else\n" +
-    "c\n" +
-    "in\n" +
-    "a + b\n" +
-    ""))
+print(parse("""
+    let a =
+        let a = 1 in
+        a
+    in
+    a"""))
 
 print(parse(
     "if a > 10 then\n" +
@@ -103,15 +98,42 @@ print(parse(
 print(parse(
     '''
     try
-    a
+    a;
     with
     e
     '''))
 
 print(parse(
-    '''
-    let a =
-        b
-    in
-    a
+    r'''
+    open Printf
+    let a = 1
+    let b = 2
+    let _ =
+        let c = a + b in
+        printf("%d\n", c)
+    '''))
+
+print(parse(
+    r'''
+    module a = struct
+        let a = 1
+        let b = 2
+    end
+    module a =
+        Set.Make(String)
+    module a =
+        Set.Make(struct type t = s end)
+    module F (X : X_type) = struct
+
+    end
+    '''))
+
+print(parse(
+    r'''
+        let b a = match a; with
+            | a when a = 1 ->
+                let a = a in
+                a
+            | _ ->
+                let a = a in a
     '''))
