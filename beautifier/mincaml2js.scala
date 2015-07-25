@@ -251,6 +251,7 @@ object test extends App {
 */
 }
 
+/*
 object Universe {
 
   implicit class RichList[T](self: List[T]) {
@@ -298,3 +299,4 @@ object Universe {
       map(methodToString)
 
 }
+*/
