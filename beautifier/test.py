@@ -80,10 +80,11 @@ for f in tests:
 print(parse(
     "type e=\n" +
     "   | Add of int\n" +
+    "   | Mul of int\n" +
     "   ;;  \n" +
     "   match a with\n" +
     "       | Add(a) -> a\n" +
-    "       | Add(a) -> a\n" +
+    "       | Mul(a) -> a\n" +
     ""))
 print(parse(
     "type e=\n" +

@@ -4,7 +4,7 @@ import sys
 sys.setrecursionlimit(1000*1000)
 
 
-class Parser:
+class Parser(object):
     def __rshift__(self, that):
         return p(self, that) ^ (lambda a: a[1])
 
@@ -13,6 +13,14 @@ class Parser:
 
     def __xor__(self, that):
         return Action(self, that)
+
+    def __neg__(self):
+        return Action(self, lambda a: [NestP, a, NestM])
+
+    class static(type):
+        def __getitem__(self, i):
+            return self(*i) if isinstance(i, tuple) else self(i)
+    __metaclass__ = static
 
 
 class nreg(Parser):
@@ -27,7 +35,7 @@ class nreg(Parser):
 skip = nreg(r'^(\s|\(\*.*\*\))*')
 
 
-class Or(Parser):
+class orp(Parser):
     def __init__(self, *params):
         self.params = map(lambda v: st(v) if isinstance(v, basestring) else v, params)
 
@@ -52,6 +60,7 @@ def st(s):
 
 
 class p(Parser):
+
     def __init__(self, *params):
         self.params = map(lambda v: st(v) if isinstance(v, basestring) else v, params)
 
@@ -81,8 +90,8 @@ class Action(Parser):
 
 
 class opt(Parser):
-    def __init__(self, thiz):
-        self.thiz = st(thiz) if isinstance(thiz, basestring) else thiz
+    def __init__(self, *thiz):
+        self.thiz = p(*thiz)
 
     def __call__(self, i):
         r = self.thiz(i)
@@ -90,8 +99,8 @@ class opt(Parser):
 
 
 class rep(Parser):
-    def __init__(self, thiz):
-        self.thiz = st(thiz) if isinstance(thiz, basestring) else thiz
+    def __init__(self, *thiz):
+        self.thiz = p(*thiz)
 
     def __call__(self, i):
         rs = []
@@ -103,13 +112,13 @@ class rep(Parser):
             i = r[1]
 
 
-def rep1(thiz):
-    return rep(thiz) ^ (lambda p: None if len(p) < 1 else p)
+def rep1(*thiz):
+    return rep(*thiz) ^ (lambda p: None if len(p) < 1 else p)
 
 
 class notp(Parser):
-    def __init__(self, thiz):
-        self.thiz = st(thiz) if isinstance(thiz, basestring) else thiz
+    def __init__(self, *thiz):
+        self.thiz = orp(*thiz)
 
     def __call__(self, i):
         return [[], i] if self.thiz(i) is None else None
@@ -117,6 +126,25 @@ class notp(Parser):
 
 def reg(s):
     return p(skip, nreg(s))
+
+
+class orhash(Parser):
+    def __init__(self, reg, dict):
+        self.reg = reg
+        self.dict = dict
+
+    def __call__(self, i):
+
+        m = self.reg(i)
+        if m is None:
+            return None
+        if not (m[0][1] in self.dict):
+            return None
+        p = self.dict[m[0][1]]
+        p2 = p(m[1])
+        if p2 is None:
+            return None
+        return [[m[0], p2[0]], p2[1]]
 
 
 class Nest:
@@ -128,10 +156,6 @@ class Nest:
         return self.name
 NestP = Nest("NestP", 1)
 NestM = Nest("NestM", -1)
-
-
-def n(*a):
-    return p(*a) ^ (lambda a: [NestP, a, NestM])
 
 
 reg2 = re.compile(r'(^.*\n.*$)')
@@ -160,11 +184,10 @@ def cnv(e):
                 s2 = e[i]
                 if s2 is NestM:
                     e3.append(s2)
-                elif whiteSpace.search(s2) is not None:
-                    s.append(s2)
                 else:
                     s.append(s2)
-                    break
+                    if whiteSpace.search(s2) is None:
+                        break
                 i += 1
         i += 1
         e3.extend(s)
@@ -183,27 +206,32 @@ def cnv(e):
 
 keywords = reg(r"^(let|in|if|else|then|rec|begin|end|match|with|type)\b")
 
-id = Or(
+id = orp(
     notp(keywords) >> reg(r"^[_a-zA-Z0-9]+"),
     reg(r'^[+\-*\/.<>:@=][+\-*\/.<>:@=]*'),
     reg(r'^[,!]'),
     reg(r'^("(\\.|[^"])*")')
 )
 
-exp = p(lambda i: p(exps, rep(p(notp(";;") >> p(";"), exps)))(i))
+exp = p(lambda i: p(exps, rep[notp(";;") >> p(";"), exps])(i))
 
-exp1 = Or(
-    p("begin", n(exp), "end"),
-    p("(", n(opt(exp)), ")"),
-    p("{", n(opt(exp)), "}"),
-    p("[", n(opt(exp)), "]"),
-    p("if", n(exp), "then", n(exp), "else", exp),
-    p("let", n(opt("rec"), exp), "in", exp),
-    p(Or("match", "try"), n(exp), "with", opt("|"), n(exp), rep(p("|", n(exp)))),
-    p("function", opt("|"), n(exp), rep(p("|", n(exp)))),
-    p("type", n(id, "=", opt("|"), n(exp), rep(p("|", n(exp)))), opt(";;")),
-    p("type", n(id, "=", exp), opt(";;")),
-    p("open", n(id, rep(p(".", id))), opt(";;")),
+exp1 = orp(
+    orhash(
+        reg(r"^[_a-zA-Z0-9]+|^[(\[{]"),
+        {
+            "begin": p(-exp, "end"),
+            "(": p(-opt(exp), ")"),
+            "{": p(-opt(exp), "}"),
+            "[": p(-opt(exp), "]"),
+            "if": p(-exp, "then", -exp, "else", exp),
+            "let": p(-p[opt("rec"), exp], "in", exp),
+            "match": p(-exp, "with", opt("|"), -exp, rep["|", -exp]),
+            "try": p(-exp, "with", opt("|"), -exp, rep["|", -exp]),
+            "function": p(opt("|"), -exp, rep("|", -exp)),
+            "type": p(-p[id, "=", opt("|"), exp, rep("|", exp)], opt(";;")),
+            "open": p(-p[id, rep(".", id)], opt(";;"))
+        }
+    ),
     id
 )
 
@@ -213,5 +241,4 @@ regparse = re.compile(r"^[\s]+", re.M)
 
 
 def parse(s):
-    s = regparse.sub("", s)
-    return cnv(exp(s))
+    return cnv(exp(regparse.sub("", s)))
