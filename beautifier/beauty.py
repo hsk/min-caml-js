@@ -3,6 +3,7 @@ import sys
 
 sys.setrecursionlimit(1000*1000)
 
+
 def startsWith(i, param):
     ilen = len(i)
     plen = len(param)
@@ -12,6 +13,7 @@ def startsWith(i, param):
         return False
     else:
         return i[0: plen] == param
+
 
 class Parser:
     def __or__(self, that):
@@ -29,6 +31,15 @@ class Parser:
     def __xor__(self, that):
         return Action(self, that)
 
+    def __neg__(self):
+        return rep(self)
+
+    def __pos__(self):
+        return rep1(self)
+
+    def __invert__(self):
+        return opt(self)
+
 class Or(Parser):
     def __init__(self, thiz, that):
         self.thiz = thiz
@@ -40,6 +51,7 @@ class Or(Parser):
             return self.that(i)
         return e
 
+
 class any_char_obj(Parser):
     def __call__(self, i):
         if len(i) > 0:
@@ -49,6 +61,7 @@ class any_char_obj(Parser):
 
 any_char = any_char_obj()
 
+
 class nstr(Parser):
     def __init__(self, param):
         self.param = param
@@ -57,6 +70,7 @@ class nstr(Parser):
         if not startsWith(i, self.param):
             return None
         return [self.param, i[len(self.param):]]
+
 
 class nreg(Parser):
     def __init__(self, param):
@@ -70,6 +84,7 @@ class nreg(Parser):
             return None
         #print(m.group(0))
         return [m.group(0), i[len(m.group(0)):]]
+
 
 class Seq(Parser):
     def __init__(self, thiz, that):
@@ -87,12 +102,14 @@ class Seq(Parser):
 
 skip = nreg('''^(\s|\(\*.*\*\))*''')
 
+
 def st(s):
     return skip + nstr(s)
 
 #print (any_char("abc"))
 
 #print (st("ab") | any_char)("  abc")
+
 
 class seq(Parser):
     def __init__(self, *params):
@@ -118,6 +135,7 @@ class seq(Parser):
         #print([rs, i])
         return [rs, i]
 
+
 class Next(Parser):
     def __init__(self, thiz, that):
         self.thiz = thiz
@@ -129,6 +147,7 @@ class Next(Parser):
             return r
         return [r[0][1], r[1]]
 
+
 class Prev(Parser):
     def __init__(self, thiz, that):
         self.thiz = thiz
@@ -139,6 +158,7 @@ class Prev(Parser):
         if r is None:
             return r
         return [r[0][0], r[1]]
+
 
 class Action(Parser):
     def __init__(self, thiz, that):
@@ -155,6 +175,7 @@ class Action(Parser):
 
 #print (st("a") + st("b") + st("c") ^ (lambda x: ["<"]+x+[">"])) ("a b c")
 
+
 class opt(Parser):
     def __init__(self, thiz):
         if isinstance(thiz, basestring):
@@ -166,6 +187,7 @@ class opt(Parser):
         if r is None:
             return [None, i]
         return r
+
 
 class rep(Parser):
     def __init__(self, thiz):
@@ -182,10 +204,12 @@ class rep(Parser):
             rs.append(r[0])
             i = r[1]
 
+
 def rep1(thiz):
     if isinstance(thiz, basestring):
         thiz = st(thiz)
     return rep(thiz) ^ (lambda p: None if len(p) < 1 else p)
+
 
 class notp(Parser):
     def __init__(self, thiz):
@@ -198,6 +222,7 @@ class notp(Parser):
         if r is None:
             return ["", i]
         return None
+
 
 class Range(Parser):
     def __init__(self, thiz):
@@ -213,8 +238,10 @@ class Range(Parser):
             return [i[0], i[1:]]
         return None
 
+
 def reg(s):
     return skip + nreg(s)
+
 
 class Nest(object):
     def __init__(self, name):
@@ -226,17 +253,20 @@ class Nest(object):
 NestM = Nest("NestM")
 NestP = Nest("NestP")
 
+
 def printf(text):
     print text
 
 #print([NestP, "a", NestM])
 
-def n(a, b, c):
+
+def n(*a):
 
     def nf(a):
-        return [a[0], NestP, a[1], NestM, a[2]]
+        return [NestP, a, NestM]
 
-    return seq(a, b, c) ^ nf
+    return seq(*a) ^ nf
+
 
 def flat(a):
 #    print("flat")
@@ -250,15 +280,16 @@ def flat(a):
         return rc
     return [a]
 
+
 def cnv(e):
     #print(e)
-    reg2 = '''(^.*\\n.*$)'''
-    whiteSpace = '''(^\\s*$)'''
+    reg2 = r'(^.*\n.*$)'
+    whiteSpace = r'(^\s*$)'
     nest = 0
     e2 = []
     for s in e:
         if isinstance(s, basestring):
-            m = re.search('''(^.*\\n)(\\s+$)''', s)
+            m = re.search(r'(^.*\n)(\s+$)', s)
             if not(m is None):
                 s = m.group(1)
         e2.append(s)
@@ -314,40 +345,42 @@ def cnv(e):
         m = re.search(reg2, s)
         if m is not None:
             #print("add nest "+nest)
-            e2.append(re.sub('\n', "\n"+makeString("  ", nest), m.group(0)))
+            e2.append(re.sub(r'\n', "\n"+makeString("  ", nest), m.group(0)))
             continue
         e2.append(s)
     #print(e2)
     return "".join(e2)
 
+p = seq
+
+
 def parse(s):
-    s = re.compile("^[\\s]+", re.M).sub("", s)
+    s = re.compile(r"^[\s]+", re.M).sub("", s)
     #s = re.sub("^\s+", "", s)
 
-    keywords = reg('''^(let|in|if|else|then|rec|begin|end|match|with|type)\\b''')
+    keywords = reg(r"^(let|in|if|else|then|rec|begin|end|match|with|type)\b")
 
-    id = notp(keywords) >> reg('''^[_a-zA-Z0-9]+''') \
-        | reg('''^[+\\-*\\/.<>:@=][+\\-*\\/.<>:@=]*''') \
-        | reg('''^[,!]''') \
-        | reg('''^("(\\.|[^"])*")''')
+    id = notp(keywords) >> reg(r"^[_a-zA-Z0-9]+") \
+        | reg(r'^[+\-*\/.<>:@=][+\-*\/.<>:@=]*') \
+        | reg(r'^[,!]') \
+        | reg(r'^("(\\.|[^"])*")')
 
-    def exp(i):
-        return (exps + rep(seq(notp(st(";;")) >> st(";"), exps)))(i)
+    exp = p(lambda i: (exps + -p(notp(";;") >> p(";"), exps))(i))
 
-    exp1 = n("begin", exp, "end") \
-        | n("(", opt(exp), ")") \
-        | n("{", opt(exp), "}") \
-        | n("[", opt(exp), "]") \
-        | seq(n("if", exp, ""), n("then", exp, "else"), exp) \
-        | seq(n("let", seq(opt("rec"), exp), "in"), exp) \
-        | seq(n((st("match") | st("try")), exp, "with"), opt("|"), n("", exp, ""), rep(seq("|", n("", exp, "")))) \
-        | seq("function", opt("|"), n("", exp, ""), rep(seq("|", n("", exp, "")))) \
-        | n("type", seq(id, "=", n(opt("|"), exp, ""), rep(n("|", exp, ""))), opt(";;")) \
-        | n("type", seq(id, "=", exp), opt(";;")) \
-        | n("open", id + rep(seq(".", id)), opt(";;")) \
+    exp1 = p("begin", n(exp), "end") \
+        | p("(", n(~exp), ")") \
+        | p("{", n(~exp), "}") \
+        | p("[", n(~exp), "]") \
+        | p("if", n(exp), "then", n(exp), "else", exp) \
+        | p("let", n(~p("rec"), exp), "in", exp) \
+        | p((st("match") | st("try")), n(exp), "with", ~p("|"), n(exp), -p("|", n(exp))) \
+        | p("function", ~p("|"), n(exp), -p("|", n(exp))) \
+        | p("type", n(id, "=", ~p("|"), n(exp), -p("|", n(exp))), ~p(";;")) \
+        | p("type", n(id, "=", exp), ~p(";;")) \
+        | p("open", n(id, -p(".", id)), ~p(";;")) \
         | id
 
-    exps = rep1(exp1)
+    exps = +exp1
 
     e = flat(exp(s))
     #print("parse e="),
