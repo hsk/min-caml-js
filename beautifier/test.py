@@ -1,6 +1,4 @@
-import beauty
-parse = beauty.parse
-
+from beauty import *
 
 print(parse("1"))
 
@@ -104,7 +102,10 @@ print(parse(
       try
     a
       with
-     |e
+     e
      in
      a
     '''))
+
+
+print(seq(opt("|"), "a")("a"))
