@@ -158,8 +158,8 @@ NestP = Nest("NestP", 1)
 NestM = Nest("NestM", -1)
 
 
-reg2 = re.compile(r'(^.*\n.*$)')
-whiteSpace = re.compile(r'(^\s*$)')
+reg2 = re.compile(r'\n')
+whiteSpace = re.compile(r'^(\s|\s*\(\*)')
 reg1 = re.compile(r'\n')
 
 
@@ -178,7 +178,7 @@ def cnv(e):
     i = 0
     while(i < len(e)):
         s = [e[i]]
-        if isinstance(s[0], basestring) and reg2.search(s[0]) is not None:
+        if isinstance(s[0], basestring) and reg2.search(s[0]) is not None and whiteSpace.search(s[0]) is not None:
             s = []
             while(i < len(e)):
                 s2 = e[i]
@@ -200,11 +200,11 @@ def cnv(e):
         else:
             m = reg2.search(s)
             if m is not None:
-                s = reg1.sub("\n"+("  " * nest), m.group(0))
+                s = reg1.sub("\n"+("  " * nest), s)
             e3.append(s)
     return "".join(e3)
 
-keywords = reg(r"^(let|in|if|else|then|rec|begin|end|match|try|with|type|open|struct|module|and|while|do|done)\b")
+keywords = reg(r"^(let|in|if|else|then|rec|begin|end|match|try|with|function|fun|type|open|struct|module|and|while|do|done)\b")
 
 semi = notp(";;") >> p(";")
 
@@ -213,9 +213,9 @@ exps = p(exp, opt(semi))
 
 id = orp(
     notp(keywords) >> reg(r"^[_a-zA-Z0-9]+"),
-    reg(r'^[+\-*\/.<>:@=^]+') ^ (lambda i: i if re.search(r'^(=|->)$', i[1]) is None else None),
+    reg(r'^[+\-*/.<>:@=^|~?]+') ^ (lambda i: i if re.search(r'^(=|->|\|)$', i[1]) is None else None),
     reg(r'^[,!]'),
-    reg(r'^("(\\.|[^"])*")')
+    reg(r'^("(\\.|[^"])*"|\'(\\.|[^\'])*\')')
 )
 
 sexp = orp(
@@ -230,10 +230,11 @@ app = rep1(sexp)
 
 exp1 = orp(
     p("let", opt("rec"), app, "=", -p[exps], "in", exp),
-    p("if", -exps, "then", -exps, "else", exp),
+    p("if", -exps, "then", -p(lambda i: exp3(i)), orp(semi, p("else", exp))),
     p("match", -exps, "with", opt("|"), -exps, rep["|", -exps]),
     p("try", -exps, "with", opt("|"), -exps, rep["|", -exps]),
     p("function", opt("|"), -exps, rep("|", -exps)),
+    p("fun", opt("|"), -exps, rep("|", -exps)),
     p("while", -exps, "do", -exps, "done"),
     app
 )
@@ -261,7 +262,7 @@ toplevel = orp(
     p("module", -p[app], "=", struct)
 )
 
-regparse = re.compile(r"^[\s]+", re.M)
+regparse = re.compile(r"^[ \t]+", re.M)
 
 
 def parse(s):
